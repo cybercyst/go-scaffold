@@ -1,1 +1,1 @@
-# gookiegutter
+# go-cookiecutter
