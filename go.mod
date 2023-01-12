@@ -7,6 +7,8 @@ require (
 	github.com/spf13/viper v1.14.0
 )
 
+require github.com/pkg/diff v0.0.0-20210226163009-20ebb0f2a09e // indirect
+
 require (
 	github.com/fsnotify/fsnotify v1.6.0 // indirect
 	github.com/hashicorp/hcl v1.0.0 // indirect
@@ -15,6 +17,7 @@ require (
 	github.com/mitchellh/mapstructure v1.5.0 // indirect
 	github.com/pelletier/go-toml v1.9.5 // indirect
 	github.com/pelletier/go-toml/v2 v2.0.5 // indirect
+	github.com/rogpeppe/go-internal v1.9.0
 	github.com/spf13/afero v1.9.2 // indirect
 	github.com/spf13/cast v1.5.0 // indirect
 	github.com/spf13/jwalterweatherman v1.1.0 // indirect
