@@ -4,3 +4,8 @@ stderr 'Error: accepts 1 arg\(s\), received 0'
 stderr 'Usage:\n  go-cookiecutter \[TEMPLATE\] \[flags\]'
 ! stdout .
 
+# Test for non existant directory
+! exec go-cookiecutter i-dont-exist
+stderr 'Error while preparing template: open i-dont-exist: no such file or directory'
+! stdout .
+
