@@ -21,11 +21,13 @@ var rootCmd = &cobra.Command{
 	},
 }
 
-func Execute() {
+func Execute() int {
 	err := rootCmd.Execute()
 	if err != nil {
 		os.Exit(1)
 	}
+
+	return 0
 }
 
 func init() {

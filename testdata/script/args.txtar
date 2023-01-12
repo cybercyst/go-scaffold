@@ -1,0 +1,6 @@
+# Test for missing template arg
+! exec go-cookiecutter
+stderr 'Error: accepts 1 arg\(s\), received 0'
+stderr 'Usage:\n  go-cookiecutter \[TEMPLATE\] \[flags\]'
+! stdout .
+
