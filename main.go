@@ -1,7 +1,15 @@
 package main
 
-import "github.com/cybercyst/go-cookiecutter/cmd"
+import (
+	"os"
+
+	"github.com/cybercyst/go-cookiecutter/cmd"
+)
+
+func cmdMain() int {
+	return cmd.Execute()
+}
 
 func main() {
-	cmd.Execute()
+	os.Exit(cmdMain())
 }
