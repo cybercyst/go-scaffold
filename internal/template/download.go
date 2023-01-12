@@ -1,4 +1,4 @@
-package internal
+package template
 
 import (
 	"context"
@@ -8,6 +8,7 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/cybercyst/go-cookiecutter/internal"
 	"github.com/go-git/go-git/v5"
 	"oras.land/oras-go/v2"
 	"oras.land/oras-go/v2/content/file"
@@ -16,8 +17,8 @@ import (
 
 func Download(uri string) (string, error) {
 	switch {
-	case isOrasArtifactUri(uri):
-		return downloadOras(uri)
+	case isOciArtifactUri(uri):
+		return downloadOci(uri)
 	case isGitRepo(uri):
 		return downloadGit(uri)
 	default:
@@ -26,7 +27,7 @@ func Download(uri string) (string, error) {
 }
 
 func createTempDir() string {
-	path, err := os.MkdirTemp(os.TempDir(), fmt.Sprintf("%s-", ProgramName))
+	path, err := os.MkdirTemp(os.TempDir(), fmt.Sprintf("%s-", internal.ProgramName))
 	if err != nil {
 		log.Fatal("Unable to create temporary directory: ", err)
 	}
@@ -34,7 +35,7 @@ func createTempDir() string {
 	return path
 }
 
-func isOrasArtifactUri(uri string) bool {
+func isOciArtifactUri(uri string) bool {
 	isOrasRegExp := regexp.MustCompile("^oci://")
 	return isOrasRegExp.MatchString(uri)
 }
@@ -53,7 +54,7 @@ func downloadGit(gitRepo string) (string, error) {
 	return tempDir, err
 }
 
-func downloadOras(uri string) (string, error) {
+func downloadOci(uri string) (string, error) {
 	ctx := context.Background()
 
 	repoUri := strings.ReplaceAll(uri, "oci://", "")

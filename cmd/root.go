@@ -6,6 +6,7 @@ import (
 	"os"
 
 	"github.com/cybercyst/go-cookiecutter/internal"
+	"github.com/cybercyst/go-cookiecutter/internal/template"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -19,12 +20,15 @@ var rootCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		templateUri := args[0]
 
-		path, err := internal.Download(templateUri)
+		path, err := template.Download(templateUri)
 		if err != nil {
 			log.Fatal("Error while preparing template: ", err)
 		}
 
-		fmt.Println("Template path is", path)
+		err = template.Generate(os.DirFS(path), map[string]interface{}{})
+		if err != nil {
+			log.Fatal("Error while generating template: ", err)
+		}
 	},
 }
 

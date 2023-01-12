@@ -9,3 +9,24 @@ stderr 'Usage:\n  go-cookiecutter \[TEMPLATE\] \[flags\]'
 stderr 'Error while preparing template: open i-dont-exist: no such file or directory'
 ! stdout .
 
+# Happy path test
+exec go-cookiecutter test-template
+stdout 'Template path is template\n'
+! stderr .
+
+exec cat my-project.txt
+stdout 'my-project\n'
+! stderr .
+
+-- test-template/schema.yaml --
+name: My Template
+type: object
+schema:
+  project_name:
+    type: string
+required:
+  - project_name
+
+-- test-template/template/{{ project_name }}.txt --
+{{ project_name }}
+

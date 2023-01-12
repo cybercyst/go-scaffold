@@ -1,4 +1,4 @@
-package internal
+package template
 
 import "testing"
 
@@ -15,8 +15,8 @@ func TestDetectIsGitRepositoryShouldDetectValidRepositories(t *testing.T) {
 	// }
 }
 
-func TestDetectIsOrasArtifactUriShouldDetectValidUri(t *testing.T) {
-	got := isOrasArtifactUri("oci://registry.url/repo/artifact:tag")
+func TestDetectIsOciArtifactUriShouldDetectValidUri(t *testing.T) {
+	got := isOciArtifactUri("oci://registry.url/repo/artifact:tag")
 	if got != true {
 		t.Error("oci://registry.url/repo/artifact:tag was not detected as a valid OCI artifact uri")
 	}
