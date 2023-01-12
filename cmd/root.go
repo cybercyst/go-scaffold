@@ -2,8 +2,10 @@ package cmd
 
 import (
 	"fmt"
+	"log"
 	"os"
 
+	"github.com/cybercyst/go-cookiecutter/internal"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -11,20 +13,25 @@ import (
 var cfgFile string
 
 var rootCmd = &cobra.Command{
-	Use:   "go-cookiecutter [TEMPLATE]",
+	Use:   fmt.Sprintf("%s [TEMPLATE]", internal.ProgramName),
 	Short: "A cookiecutter-like templating CLI written in Go",
 	Args:  cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		templateUri := args[0]
 
-		fmt.Println("Template is", templateUri)
+		path, err := internal.Download(templateUri)
+		if err != nil {
+			log.Fatal("Error while preparing template: ", err)
+		}
+
+		fmt.Println("Template path is", path)
 	},
 }
 
 func Execute() int {
 	err := rootCmd.Execute()
 	if err != nil {
-		os.Exit(1)
+		return 1
 	}
 
 	return 0
@@ -45,7 +52,7 @@ func initConfig() {
 
 		viper.AddConfigPath(home)
 		viper.SetConfigType("yaml")
-		viper.SetConfigName(".go-cookiecutter")
+		viper.SetConfigName(fmt.Sprintf(".%s", internal.ProgramName))
 	}
 
 	viper.AutomaticEnv()
