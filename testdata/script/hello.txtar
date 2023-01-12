@@ -1,3 +1,0 @@
-! exec cat doesntexist
-stderr 'cat: doesntexist: No such file or directory'
-! stdout .

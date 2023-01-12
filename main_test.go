@@ -10,6 +10,12 @@ import (
 
 func TestMain(m *testing.M) {
 	os.Exit(testscript.RunMain(m, map[string]func() int{
-		"go-cookiecutter": cmd.Execute(),
+		"go-cookiecutter": cmd.Execute,
 	}))
+}
+
+func TestCli(t *testing.T) {
+	testscript.Run(t, testscript.Params{
+		Dir: "testdata/script",
+	})
 }
