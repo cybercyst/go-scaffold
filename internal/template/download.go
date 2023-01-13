@@ -15,14 +15,16 @@ import (
 	"oras.land/oras-go/v2/registry/remote"
 )
 
-func Download(uri string) (string, error) {
+func (t *Template) Download(uri string) error {
+	t.Uri = uri
+
 	switch {
-	case isOciArtifactUri(uri):
-		return downloadOci(uri)
-	case isGitRepo(uri):
-		return downloadGit(uri)
+	case isOciArtifactUri(t.Uri):
+		return t.downloadOci()
+	case isGitRepo(t.Uri):
+		return t.downloadGit()
 	default:
-		return downloadFs(uri)
+		return t.downloadFs()
 	}
 }
 
@@ -41,26 +43,38 @@ func isOciArtifactUri(uri string) bool {
 }
 
 func isGitRepo(uri string) bool {
-	isSchemeRegExp := regexp.MustCompile(`^[^:]+://`)
-	return isSchemeRegExp.MatchString(uri)
+	isGitRegExp := regexp.MustCompile(`^((git|ssh|http(s)?)|(git@[\w\.]+))(:(//)?)([\w\.@\:/\-~]+)(\.git)(/)?`)
+	return isGitRegExp.MatchString(uri)
 }
 
-func downloadGit(gitRepo string) (string, error) {
+func (t *Template) downloadGit() error {
 	tempDir := createTempDir()
 
-	_, err := git.PlainClone(tempDir, false, &git.CloneOptions{
-		URL: gitRepo,
+	repo, err := git.PlainClone(tempDir, false, &git.CloneOptions{
+		URL: t.Uri,
 	})
-	return tempDir, err
+	if err != nil {
+		return err
+	}
+
+	head, err := repo.Head()
+	if err != nil {
+		return err
+	}
+
+	t.Version = head.Hash().String()
+	t.LocalPath = tempDir
+
+	return err
 }
 
-func downloadOci(uri string) (string, error) {
+func (t *Template) downloadOci() error {
 	ctx := context.Background()
 
-	repoUri := strings.ReplaceAll(uri, "oci://", "")
+	repoUri := strings.ReplaceAll(t.Uri, "oci://", "")
 	repo, err := remote.NewRepository(repoUri)
 	if err != nil {
-		return "", err
+		return err
 	}
 
 	tempDir := createTempDir()
@@ -69,19 +83,23 @@ func downloadOci(uri string) (string, error) {
 	copyOptions := oras.DefaultCopyOptions
 	desc, err := oras.Copy(ctx, repo, repo.Reference.Reference, dst, repo.Reference.Reference, copyOptions)
 	if err != nil {
-		return "", err
+		return err
 	}
 
-	fmt.Println("tempDir", tempDir)
-	fmt.Println("Digest:", desc.Digest)
-	return tempDir, nil
+	t.Version = desc.Digest.String()
+	t.LocalPath = tempDir
+
+	return nil
 }
 
-func downloadFs(path string) (string, error) {
-	_, err := os.ReadDir(path)
+func (t *Template) downloadFs() error {
+	_, err := os.ReadDir(t.Uri)
 	if err != nil {
-		return "", err
+		return err
 	}
 
-	return path, nil
+	t.Version = "HEAD"
+	t.LocalPath = t.Uri
+
+	return nil
 }

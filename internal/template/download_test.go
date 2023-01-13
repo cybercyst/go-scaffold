@@ -2,17 +2,22 @@ package template
 
 import "testing"
 
-func TestDetectIsGitRepositoryShouldDetectValidRepositories(t *testing.T) {
-	got := isGitRepo("https://github.com/user/repo.git")
+func testGitUrl(url string, t *testing.T) {
+	got := isGitRepo(url)
 	if got != true {
-		t.Error("https://github.com/user/repo.git was not detected as a valid git repository")
+		t.Errorf("%s was not detected as a valid git repository", url)
 	}
+}
 
-	// TODO: SSH repos
-	// got = isGitRepo("git@github.com:cybercyst/go-api.git")
-	// if got != true {
-	// 	t.Error("git@github.com:cybercyst/go-api.git was not detected as a valid git repository")
-	// }
+func TestDetectIsGitRepositoryShouldDetectValidRepositories(t *testing.T) {
+	// support https
+	testGitUrl("https://github.com/user/template.git", t)
+
+	// support SSH
+	testGitUrl("git@github.com:user/template.git", t)
+
+	// support self hosted repos
+	testGitUrl("git@myurltest.com:user/template.git", t)
 }
 
 func TestDetectIsOciArtifactUriShouldDetectValidUri(t *testing.T) {

@@ -1,7 +1,6 @@
 package template
 
 import (
-	"fmt"
 	"io/fs"
 	"os"
 	"path/filepath"
@@ -9,27 +8,25 @@ import (
 	"github.com/flosch/pongo2/v6"
 )
 
-func Generate(path fs.FS, input map[string]interface{}) error {
-	schema, err := loadSchemaFromFile(path, "schema.yaml")
-	if err != nil {
-		return err
-	}
-
-	err = validateInput(schema, input)
-	if err != nil {
-		return err
-	}
-
-	fmt.Println("Got here!")
-
-	err = fs.WalkDir(path, ".", func(path string, d fs.DirEntry, err error) error {
+func (t *Template) Generate() error {
+	templateFilesDir := filepath.Join(t.LocalPath, "template")
+	err := filepath.WalkDir(templateFilesDir, func(path string, d fs.DirEntry, err error) error {
 		if err != nil {
 			return err
 		}
 
-		finalPathName, err := executeTemplate([]byte(path), input)
+		templatedPathName, err := executeTemplate([]byte(path), t.Input)
 		if err != nil {
 			return err
+		}
+
+		finalPathName, err := filepath.Rel(templateFilesDir, templatedPathName)
+		if err != nil {
+			return err
+		}
+
+		if finalPathName == "" {
+			return nil
 		}
 
 		if d.IsDir() {
@@ -47,7 +44,7 @@ func Generate(path fs.FS, input map[string]interface{}) error {
 			return err
 		}
 
-		contents, err := executeTemplate(rawContents, input)
+		contents, err := executeTemplate(rawContents, t.Input)
 		if err != nil {
 			return err
 		}
@@ -59,6 +56,11 @@ func Generate(path fs.FS, input map[string]interface{}) error {
 
 		return nil
 	})
+
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
