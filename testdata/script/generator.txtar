@@ -1,25 +1,19 @@
 # Happy path test
-exec go-cookiecutter test-template --input-file input.yaml
-# TODO: stdout test
-# stdout 'Template path is template\n'
+exec go-cookiecutter test-template --input-file input.yaml --output-directory output
 ! stderr .
 
-exec cat my-project.txt
-stdout 'my-project\n'
-! stderr .
+cmp output/my-project/my-project.txt expected_file
 
 -- input.yaml --
 project_name: my-project
-
 -- test-template/schema.yaml --
-name: My Template
 type: object
 schema:
   project_name:
     type: string
 required:
   - project_name
-
--- test-template/template/{{ project_name }}.txt --
+-- test-template/template/{{ project_name }}/{{ project_name }}.txt --
 {{ project_name }}
-
+-- expected_file --
+my-project
