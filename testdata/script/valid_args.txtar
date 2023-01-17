@@ -4,8 +4,12 @@ stderr 'Error: accepts 1 arg\(s\), received 0'
 stderr 'Usage:\n  go-cookiecutter \[TEMPLATE\] \[flags\]'
 ! stdout .
 
-# Test for non existant directory
-! exec go-cookiecutter i-dont-exist
-stderr 'Error while preparing template: open i-dont-exist: no such file or directory'
+# Test for missing input-file flag
+! exec go-cookiecutter some-template
+stderr 'Error: required flag\(s\) "input-file" not set'
 ! stdout .
 
+# Test for non existant directory
+! exec go-cookiecutter i-dont-exist --input-file input.yaml
+stderr 'Error while preparing template: open i-dont-exist: no such file or directory'
+! stdout .

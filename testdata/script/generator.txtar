@@ -1,0 +1,19 @@
+# Happy path test
+exec go-cookiecutter test-template --input-file input.yaml --output-directory output
+! stderr .
+
+cmp output/my-project/my-project.txt expected_file
+
+-- input.yaml --
+project_name: my-project
+-- test-template/schema.yaml --
+type: object
+schema:
+  project_name:
+    type: string
+required:
+  - project_name
+-- test-template/template/{{ project_name }}/{{ project_name }}.txt --
+{{ project_name }}
+-- expected_file --
+my-project
