@@ -1,6 +1,8 @@
 package template
 
-import "testing"
+import (
+	"testing"
+)
 
 func testGitUrl(url string, t *testing.T) {
 	got := isGitRepo(url)
@@ -24,5 +26,25 @@ func TestDetectIsOciArtifactUriShouldDetectValidUri(t *testing.T) {
 	got := isOciArtifactUri("oci://registry.url/repo/artifact:tag")
 	if got != true {
 		t.Error("oci://registry.url/repo/artifact:tag was not detected as a valid OCI artifact uri")
+	}
+}
+
+func TestDectectIsDirectoryShouldDetectValidDirectory(t *testing.T) {
+	got := isDirectory(".")
+	if got != true {
+		t.Error("current test directory was not detected as a valid directory")
+	}
+
+	got = isDirectory("i-dont-exist")
+	if got == true {
+		t.Error("non existant directory was detected as a valid directory")
+	}
+}
+
+func TestDetectErrorWhenNoValidUriPassed(t *testing.T) {
+	template := &Template{}
+	got := template.Download("this-isn't-a-valid-uri-or-folder")
+	if got == nil {
+		t.Error("invalid uri did not cause an error")
 	}
 }

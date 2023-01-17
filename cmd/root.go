@@ -3,6 +3,7 @@ package cmd
 import (
 	"fmt"
 	"log"
+	"path/filepath"
 
 	"github.com/cybercyst/go-cookiecutter/internal"
 	"github.com/cybercyst/go-cookiecutter/internal/template"
@@ -10,7 +11,8 @@ import (
 )
 
 var (
-	inputFile string
+	inputFile       string
+	outputDirectory string
 )
 
 var rootCmd = &cobra.Command{
@@ -37,12 +39,16 @@ var rootCmd = &cobra.Command{
 			log.Fatal("Error while validating input: ", err)
 		}
 
+		absOutputDirectory, err := filepath.Abs(outputDirectory)
+		if err != nil {
+			log.Fatal("Error setting output directory: ", err)
+		}
+		template.OutputPath = absOutputDirectory
+
 		err = template.Generate()
 		if err != nil {
-			log.Fatal("Unable to generate template", err)
+			log.Fatal("Unable to generate template: ", err)
 		}
-
-		// fmt.Printf("%+v\n", template)
 	},
 }
 
@@ -57,5 +63,6 @@ func Execute() int {
 
 func init() {
 	rootCmd.Flags().StringVarP(&inputFile, "input-file", "i", "", "File containing variables used as input for the template")
+	rootCmd.Flags().StringVarP(&outputDirectory, "output-directory", "o", ".", "Directory where template will be generated")
 	rootCmd.MarkFlagRequired("input-file")
 }

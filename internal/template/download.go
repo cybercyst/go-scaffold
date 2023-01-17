@@ -2,8 +2,6 @@ package template
 
 import (
 	"context"
-	"fmt"
-	"log"
 	"os"
 	"regexp"
 	"strings"
@@ -24,22 +22,37 @@ func (t *Template) Download(uri string) error {
 	case isGitRepo(t.Uri):
 		return t.downloadGit()
 	default:
-		return t.downloadFs()
+		return t.useDirectory()
 	}
-}
-
-func createTempDir() string {
-	path, err := os.MkdirTemp(os.TempDir(), fmt.Sprintf("%s-", internal.ProgramName))
-	if err != nil {
-		log.Fatal("Unable to create temporary directory: ", err)
-	}
-
-	return path
 }
 
 func isOciArtifactUri(uri string) bool {
 	isOrasRegExp := regexp.MustCompile("^oci://")
 	return isOrasRegExp.MatchString(uri)
+}
+
+func (t *Template) downloadOci() error {
+	ctx := context.Background()
+
+	repoUri := strings.ReplaceAll(t.Uri, "oci://", "")
+	repo, err := remote.NewRepository(repoUri)
+	if err != nil {
+		return err
+	}
+
+	tempDir := internal.CreateTempDir()
+	dst := file.New(tempDir)
+
+	copyOptions := oras.DefaultCopyOptions
+	desc, err := oras.Copy(ctx, repo, repo.Reference.Reference, dst, repo.Reference.Reference, copyOptions)
+	if err != nil {
+		return err
+	}
+
+	t.Version = desc.Digest.String()
+	t.LocalPath = tempDir
+
+	return nil
 }
 
 func isGitRepo(uri string) bool {
@@ -48,7 +61,7 @@ func isGitRepo(uri string) bool {
 }
 
 func (t *Template) downloadGit() error {
-	tempDir := createTempDir()
+	tempDir := internal.CreateTempDir()
 
 	repo, err := git.PlainClone(tempDir, false, &git.CloneOptions{
 		URL: t.Uri,
@@ -68,31 +81,16 @@ func (t *Template) downloadGit() error {
 	return err
 }
 
-func (t *Template) downloadOci() error {
-	ctx := context.Background()
-
-	repoUri := strings.ReplaceAll(t.Uri, "oci://", "")
-	repo, err := remote.NewRepository(repoUri)
-	if err != nil {
-		return err
+func isDirectory(uri string) bool {
+	info, err := os.Stat(uri)
+	if os.IsNotExist(err) {
+		return false
 	}
 
-	tempDir := createTempDir()
-	dst := file.New(tempDir)
-
-	copyOptions := oras.DefaultCopyOptions
-	desc, err := oras.Copy(ctx, repo, repo.Reference.Reference, dst, repo.Reference.Reference, copyOptions)
-	if err != nil {
-		return err
-	}
-
-	t.Version = desc.Digest.String()
-	t.LocalPath = tempDir
-
-	return nil
+	return info.IsDir()
 }
 
-func (t *Template) downloadFs() error {
+func (t *Template) useDirectory() error {
 	_, err := os.ReadDir(t.Uri)
 	if err != nil {
 		return err
