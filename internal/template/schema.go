@@ -4,22 +4,22 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"os"
-	"path/filepath"
 
 	"github.com/qri-io/jsonschema"
+	"github.com/spf13/afero"
 	"sigs.k8s.io/yaml"
 )
 
 func (t *Template) ValidateInput() error {
-	schema, err := loadSchemaFromFile(filepath.Join(t.LocalPath, "schema.yaml"))
+	fs := afero.NewBasePathFs(afero.NewOsFs(), t.LocalPath)
+	schema, err := loadSchemaFromFile(fs, "schema.yaml")
 	if err != nil {
 		return err
 	}
 
 	t.Schema = schema
 
-	err = t.validateInput()
+	err = validateInput(t.Schema, &t.Input)
 	if err != nil {
 		return err
 	}
@@ -27,15 +27,15 @@ func (t *Template) ValidateInput() error {
 	return nil
 }
 
-func (t *Template) validateInput() error {
+func validateInput(schema *jsonschema.Schema, input *map[string]interface{}) error {
 	ctx := context.Background()
 
-	userInputBytes, err := json.Marshal(t.Input)
+	userInputBytes, err := json.Marshal(input)
 	if err != nil {
 		return err
 	}
 
-	validationErrors, err := t.Schema.ValidateBytes(ctx, userInputBytes)
+	validationErrors, err := schema.ValidateBytes(ctx, userInputBytes)
 	if err != nil {
 		return err
 	}
@@ -51,8 +51,8 @@ func (t *Template) validateInput() error {
 	return nil
 }
 
-func loadSchemaFromFile(schemaFile string) (*jsonschema.Schema, error) {
-	schemaBytes, err := os.ReadFile(schemaFile)
+func loadSchemaFromFile(fs afero.Fs, schemaFile string) (*jsonschema.Schema, error) {
+	schemaBytes, err := afero.ReadFile(fs, schemaFile)
 	if err != nil {
 		return nil, err
 	}

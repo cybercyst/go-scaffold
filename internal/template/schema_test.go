@@ -1,65 +1,61 @@
 package template
 
-// import (
-// 	"testing"
-// )
+import (
+	"testing"
 
-// func TestValidateSchemaShouldThrowNoErrorWhenInputMatchesSchema(t *testing.T) {
-// 	// 	m := fstest.MapFS{
-// 	// 		"schema.yaml": {
-// 	// 			Data: []byte(`
-// 	// name: My Template
-// 	// type: object
-// 	// schema:
-// 	//   project_name:
-// 	//     type: string
-// 	// required:
-// 	//   - project_name
-// 	// `),
-// 	// 		},
-// 	// 	}
+	"github.com/spf13/afero"
+)
 
-// 	schema, err := loadSchemaFromFile("schema.yaml")
-// 	if err != nil {
-// 		t.Error("got unexpected error while parsing schema")
-// 	}
+func TestValidateSchemaShouldThrowNoErrorWhenInputMatchesSchema(t *testing.T) {
+	fs := afero.NewMemMapFs()
+	afero.WriteFile(fs, "schema.yaml", []byte(`
+name: My Template
+type: object
+schema:
+  project_name:
+    type: string
+required:
+  - project_name
+`), 0644)
 
-// 	input := map[string]interface{}{
-// 		"project_name": "my-project",
-// 	}
+	schema, err := loadSchemaFromFile(fs, "schema.yaml")
+	if err != nil {
+		t.Fatalf("got unexpected error while parsing schema: %s", err)
+	}
 
-// 	err = validateInput(schema, input)
-// 	if err != nil {
-// 		t.Error("Got error when validating test input", err)
-// 	}
-// }
+	input := map[string]interface{}{
+		"project_name": "my-project",
+	}
 
-// func TestValidateSchemaShouldThrowErrorWhenInputDoesntMatchSchema(t *testing.T) {
-// 	// 	m := fstest.MapFS{
-// 	// 		"schema.yaml": {
-// 	// 			Data: []byte(`
-// 	// name: My Template
-// 	// type: object
-// 	// schema:
-// 	//   project_name:
-// 	//     type: string
-// 	// required:
-// 	//   - project_name
-// 	// `),
-// 	// 		},
-// 	// 	}
+	err = validateInput(schema, &input)
+	if err != nil {
+		t.Error("Got error when validating test input", err)
+	}
+}
 
-// 	schema, err := loadSchemaFromFile("schema.yaml")
-// 	if err != nil {
-// 		t.Error("got unexpected error while parsing schema")
-// 	}
+func TestValidateSchemaShouldThrowErrorWhenInputDoesntMatchSchema(t *testing.T) {
+	fs := afero.NewMemMapFs()
+	afero.WriteFile(fs, "schema.yaml", []byte(`
+name: My Template
+type: object
+schema:
+  project_name:
+    type: string
+required:
+  - project_name
+`), 0644)
 
-// 	input := map[string]interface{}{
-// 		"invalid_key": "No One Cares About This Value",
-// 	}
+	schema, err := loadSchemaFromFile(fs, "schema.yaml")
+	if err != nil {
+		t.Error("got unexpected error while parsing schema")
+	}
 
-// 	err = validateInput(schema, input)
-// 	if err == nil {
-// 		t.Error("Did not get an expected error when passing bad user input")
-// 	}
-// }
+	input := map[string]interface{}{
+		"invalid_key": "No One Cares About This Value",
+	}
+
+	err = validateInput(schema, &input)
+	if err == nil {
+		t.Error("Did not get an expected error when passing bad user input")
+	}
+}
