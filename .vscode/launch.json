@@ -18,7 +18,7 @@
                 "/tmp/go-cookiecutter-output"
             ],
             "env": {
-                "GITHUB_TOKEN": "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"
+                "GITHUB_TOKEN": "/* Insert GitHub Token here if you'd like to use private repos */"
             }
         }
     ]
