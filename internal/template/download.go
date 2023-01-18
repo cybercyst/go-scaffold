@@ -2,12 +2,16 @@ package template
 
 import (
 	"context"
+	"errors"
 	"os"
 	"regexp"
 	"strings"
 
 	"github.com/cybercyst/go-cookiecutter/internal"
 	"github.com/go-git/go-git/v5"
+	"github.com/go-git/go-git/v5/plumbing/transport"
+	"github.com/go-git/go-git/v5/plumbing/transport/http"
+	"github.com/spf13/viper"
 	"oras.land/oras-go/v2"
 	"oras.land/oras-go/v2/content/file"
 	"oras.land/oras-go/v2/registry/remote"
@@ -60,12 +64,48 @@ func isGitRepo(uri string) bool {
 	return isGitRegExp.MatchString(uri)
 }
 
+func getGitAuth() (transport.AuthMethod, error) {
+	githubToken := viper.GetString("GITHUB_TOKEN")
+	if githubToken != "" {
+		return &http.BasicAuth{
+			Username: "git",
+			Password: githubToken,
+		}, nil
+	}
+
+	// knownHostsFile := viper.Get("SSH_KNOWN_HOSTS")
+
+	return nil, errors.New("authentication needed and none configured")
+}
+
 func (t *Template) downloadGit() error {
 	tempDir := internal.CreateTempDir()
 
+	auth, err := getGitAuth()
+	if err != nil {
+		return err
+	}
 	repo, err := git.PlainClone(tempDir, false, &git.CloneOptions{
-		URL: t.Uri,
+		URL:      t.Uri,
+		Depth:    1,
+		Progress: os.Stdout,
+		Auth:     auth,
 	})
+	// if errors.Is(err, transport.ErrAuthenticationRequired) {
+	// 	auth, err := getGitAuth()
+	// 	if err != nil {
+	// 		return err
+	// 	}
+	// 	repo, err = git.PlainClone(tempDir, false, &git.CloneOptions{
+	// 		URL:      t.Uri,
+	// 		Depth:    1,
+	// 		Auth:     auth,
+	// 		Progress: os.Stdout,
+	// 	})
+	// 	if err != nil {
+	// 		return err
+	// 	}
+	// }
 	if err != nil {
 		return err
 	}
