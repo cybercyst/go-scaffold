@@ -1,4 +1,4 @@
-package template
+package go_cookiecutter
 
 import (
 	"context"
@@ -9,23 +9,6 @@ import (
 	"github.com/spf13/afero"
 	"sigs.k8s.io/yaml"
 )
-
-func (t *Template) ValidateInput() error {
-	fs := afero.NewBasePathFs(afero.NewOsFs(), t.LocalPath)
-	schema, err := loadSchemaFromFile(fs, "schema.yaml")
-	if err != nil {
-		return err
-	}
-
-	t.Schema = schema
-
-	err = validateInput(t.Schema, &t.Input)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
 
 func validateInput(schema *jsonschema.Schema, input *map[string]interface{}) error {
 	ctx := context.Background()
@@ -51,8 +34,8 @@ func validateInput(schema *jsonschema.Schema, input *map[string]interface{}) err
 	return nil
 }
 
-func loadSchemaFromFile(fs afero.Fs, schemaFile string) (*jsonschema.Schema, error) {
-	schemaBytes, err := afero.ReadFile(fs, schemaFile)
+func loadSchema(fs afero.Fs) (*jsonschema.Schema, error) {
+	schemaBytes, err := afero.ReadFile(fs, "schema.yaml")
 	if err != nil {
 		return nil, err
 	}

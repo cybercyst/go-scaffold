@@ -1,4 +1,4 @@
-package template
+package go_cookiecutter
 
 import (
 	"context"
@@ -6,23 +6,25 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/cybercyst/go-cookiecutter/internal"
 	"github.com/go-git/go-git/v5"
 	"oras.land/oras-go/v2"
 	"oras.land/oras-go/v2/content/file"
 	"oras.land/oras-go/v2/registry/remote"
 )
 
-func (t *Template) Download(uri string) error {
-	t.Uri = uri
+type DownloadInfo struct {
+	LocalPath string
+	Version   string
+}
 
+func download(uri string) (*DownloadInfo, error) {
 	switch {
-	case isOciArtifactUri(t.Uri):
-		return t.downloadOci()
-	case isGitRepo(t.Uri):
-		return t.downloadGit()
+	case isOciArtifactUri(uri):
+		return downloadOci(uri)
+	case isGitRepo(uri):
+		return downloadGit(uri)
 	default:
-		return t.useDirectory()
+		return useDirectory(uri)
 	}
 }
 
@@ -31,28 +33,28 @@ func isOciArtifactUri(uri string) bool {
 	return isOrasRegExp.MatchString(uri)
 }
 
-func (t *Template) downloadOci() error {
+func downloadOci(ociArtifactUri string) (*DownloadInfo, error) {
 	ctx := context.Background()
 
-	repoUri := strings.ReplaceAll(t.Uri, "oci://", "")
+	repoUri := strings.ReplaceAll(ociArtifactUri, "oci://", "")
 	repo, err := remote.NewRepository(repoUri)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	tempDir := internal.CreateTempDir()
+	tempDir := createTempDir()
 	dst := file.New(tempDir)
 
 	copyOptions := oras.DefaultCopyOptions
 	desc, err := oras.Copy(ctx, repo, repo.Reference.Reference, dst, repo.Reference.Reference, copyOptions)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	t.Version = desc.Digest.String()
-	t.LocalPath = tempDir
-
-	return nil
+	return &DownloadInfo{
+		LocalPath: tempDir,
+		Version:   desc.Digest.String(),
+	}, nil
 }
 
 func isGitRepo(uri string) bool {
@@ -60,25 +62,25 @@ func isGitRepo(uri string) bool {
 	return isGitRegExp.MatchString(uri)
 }
 
-func (t *Template) downloadGit() error {
-	tempDir := internal.CreateTempDir()
+func downloadGit(gitRepo string) (*DownloadInfo, error) {
+	tempDir := createTempDir()
 
 	repo, err := git.PlainClone(tempDir, false, &git.CloneOptions{
-		URL: t.Uri,
+		URL: gitRepo,
 	})
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	head, err := repo.Head()
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	t.Version = head.Hash().String()
-	t.LocalPath = tempDir
-
-	return err
+	return &DownloadInfo{
+		LocalPath: tempDir,
+		Version:   head.Hash().String(),
+	}, nil
 }
 
 func isDirectory(uri string) bool {
@@ -90,14 +92,16 @@ func isDirectory(uri string) bool {
 	return info.IsDir()
 }
 
-func (t *Template) useDirectory() error {
-	_, err := os.ReadDir(t.Uri)
-	if err != nil {
-		return err
+func useDirectory(filePath string) (*DownloadInfo, error) {
+	if _, err := os.ReadDir(filePath); err != nil {
+		return nil, err
 	}
 
-	t.Version = "HEAD"
-	t.LocalPath = t.Uri
+	// TODO: check if filePath is just a local git repo and
+	// use its SHA for version
 
-	return nil
+	return &DownloadInfo{
+		LocalPath: filePath,
+		Version:   "",
+	}, nil
 }

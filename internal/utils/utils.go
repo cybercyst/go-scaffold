@@ -1,8 +1,6 @@
-package internal
+package utils
 
 import (
-	"fmt"
-	"log"
 	"os"
 
 	"gopkg.in/yaml.v2"
@@ -21,13 +19,4 @@ func ReadTemplateInput(inputFilePath string) (map[string]interface{}, error) {
 	}
 
 	return inputJson, nil
-}
-
-func CreateTempDir() string {
-	path, err := os.MkdirTemp(os.TempDir(), fmt.Sprintf("%s-", ProgramName))
-	if err != nil {
-		log.Fatal("Unable to create temporary directory: ", err)
-	}
-
-	return path
 }

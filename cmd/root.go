@@ -2,11 +2,10 @@ package cmd
 
 import (
 	"fmt"
-	"log"
-	"path/filepath"
+	"os"
 
-	"github.com/cybercyst/go-cookiecutter/internal"
-	"github.com/cybercyst/go-cookiecutter/internal/template"
+	"github.com/cybercyst/go-cookiecutter/go_cookiecutter"
+	"github.com/cybercyst/go-cookiecutter/internal/utils"
 	"github.com/spf13/cobra"
 )
 
@@ -15,39 +14,26 @@ var (
 	outputDirectory string
 )
 
+const ProgramName = "go-cookiecutter"
+
 var rootCmd = &cobra.Command{
-	Use:   fmt.Sprintf("%s [TEMPLATE]", internal.ProgramName),
+	Use:   fmt.Sprintf("%s [TEMPLATE]", ProgramName),
 	Short: "A cookiecutter-like templating CLI written in Go",
 	Args:  cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
-		template := &template.Template{}
-
 		uri := args[0]
-		err := template.Download(uri)
+
+		input, err := utils.ReadTemplateInput(inputFile)
 		if err != nil {
-			log.Fatal("Error while preparing template: ", err)
+			fmt.Fprintf(os.Stderr, "Error: problem reading input: %s", err)
+			os.Exit(1)
 		}
 
-		input, err := internal.ReadTemplateInput(inputFile)
+		// TODO: get metadata and write to file
+		_, err = go_cookiecutter.Generate(uri, &input, outputDirectory)
 		if err != nil {
-			log.Fatal("Error while getting template input: ", err)
-		}
-		template.Input = input
-
-		err = template.ValidateInput()
-		if err != nil {
-			log.Fatal("Error while validating input: ", err)
-		}
-
-		absOutputDirectory, err := filepath.Abs(outputDirectory)
-		if err != nil {
-			log.Fatal("Error setting output directory: ", err)
-		}
-		template.OutputPath = absOutputDirectory
-
-		err = template.Generate()
-		if err != nil {
-			log.Fatal("Unable to generate template: ", err)
+			fmt.Fprintf(os.Stderr, "Error: problem generating template: %s", err)
+			os.Exit(1)
 		}
 	},
 }

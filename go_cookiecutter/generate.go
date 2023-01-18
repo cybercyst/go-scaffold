@@ -1,4 +1,4 @@
-package template
+package go_cookiecutter
 
 import (
 	"io/fs"
@@ -8,16 +8,35 @@ import (
 	"github.com/spf13/afero"
 )
 
-func (t *Template) Generate() error {
-	templateFilesDir := filepath.Join(t.LocalPath, "template")
-	templateFs := afero.NewBasePathFs(afero.NewOsFs(), templateFilesDir)
-	outputFs := afero.NewBasePathFs(afero.NewOsFs(), t.OutputPath)
-	err := generateTemplateFiles(templateFs, outputFs, &t.Input)
-	if err != nil {
-		return err
+type GeneratedMetadata struct {
+	Uri     string
+	Version string
+	Input   *map[string]interface{}
+}
+
+func Generate(templateUri string, templateInput *map[string]interface{}, outputPath string) (*GeneratedMetadata, error) {
+	if err := ensurePathExists(outputPath); err != nil {
+		return nil, err
 	}
 
-	return nil
+	template, err := NewTemplate(templateUri)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := template.ValidateInput(templateInput); err != nil {
+		return nil, err
+	}
+
+	if err := template.Execute(templateInput, outputPath); err != nil {
+		return nil, err
+	}
+
+	return &GeneratedMetadata{
+		Uri:     template.Uri,
+		Version: template.Version,
+		Input:   templateInput,
+	}, nil
 }
 
 func generateTemplateFiles(templateFs afero.Fs, outputFs afero.Fs, input *map[string]interface{}) error {

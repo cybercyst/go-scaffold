@@ -1,4 +1,4 @@
-package template
+package go_cookiecutter
 
 import (
 	"testing"
@@ -18,7 +18,7 @@ required:
   - project_name
 `), 0644)
 
-	schema, err := loadSchemaFromFile(fs, "schema.yaml")
+	schema, err := loadSchema(fs)
 	if err != nil {
 		t.Fatalf("got unexpected error while parsing schema: %s", err)
 	}
@@ -45,7 +45,7 @@ required:
   - project_name
 `), 0644)
 
-	schema, err := loadSchemaFromFile(fs, "schema.yaml")
+	schema, err := loadSchema(fs)
 	if err != nil {
 		t.Error("got unexpected error while parsing schema")
 	}

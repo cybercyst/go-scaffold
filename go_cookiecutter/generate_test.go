@@ -1,4 +1,4 @@
-package template
+package go_cookiecutter
 
 import (
 	"testing"

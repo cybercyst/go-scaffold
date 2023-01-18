@@ -1,4 +1,4 @@
-package template
+package go_cookiecutter
 
 import (
 	"testing"
@@ -42,8 +42,7 @@ func TestDectectIsDirectoryShouldDetectValidDirectory(t *testing.T) {
 }
 
 func TestDetectErrorWhenNoValidUriPassed(t *testing.T) {
-	template := &Template{}
-	got := template.Download("this-isn't-a-valid-uri-or-folder")
+	_, got := download("this-isn't-a-valid-uri-or-folder")
 	if got == nil {
 		t.Error("invalid uri did not cause an error")
 	}

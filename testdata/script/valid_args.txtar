@@ -11,5 +11,8 @@ stderr 'Error: required flag\(s\) "input-file" not set'
 
 # Test for non existant directory
 ! exec go-cookiecutter i-dont-exist --input-file input.yaml
-stderr 'Error while preparing template: open i-dont-exist: no such file or directory'
+stderr 'open i-dont-exist: no such file or directory'
 ! stdout .
+
+-- input.yaml --
+project_name: My Test Project
