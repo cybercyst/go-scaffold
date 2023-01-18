@@ -1,4 +1,4 @@
-package go_cookiecutter
+package generate
 
 import (
 	"testing"
@@ -17,7 +17,7 @@ project_name is {{ project_name }}
 		"project_name": "My Project",
 	}
 
-	err := generateTemplateFiles(templateFs, outputFs, &input)
+	err := GenerateTemplateFiles(templateFs, outputFs, &input)
 	if err != nil {
 		t.Fatalf("unexpected error thrown while generating template: %s", err)
 	}

@@ -1,8 +1,11 @@
-package go_cookiecutter
+package template
 
 import (
 	"path/filepath"
 
+	"github.com/cybercyst/go-cookiecutter/internal/download"
+	"github.com/cybercyst/go-cookiecutter/internal/generate"
+	"github.com/cybercyst/go-cookiecutter/internal/schema"
 	"github.com/qri-io/jsonschema"
 	"github.com/spf13/afero"
 )
@@ -15,13 +18,13 @@ type Template struct {
 }
 
 func NewTemplate(uri string) (*Template, error) {
-	downloadInfo, err := download(uri)
+	downloadInfo, err := download.Download(uri)
 	if err != nil {
 		return nil, err
 	}
 
 	templateFs := afero.NewBasePathFs(afero.NewOsFs(), downloadInfo.LocalPath)
-	schema, err := loadSchema(templateFs)
+	schema, err := schema.LoadSchema(templateFs)
 	if err != nil {
 		return nil, err
 	}
@@ -35,7 +38,7 @@ func NewTemplate(uri string) (*Template, error) {
 }
 
 func (t *Template) ValidateInput(input *map[string]interface{}) error {
-	if err := validateInput(t.Schema, input); err != nil {
+	if err := schema.ValidateInput(t.Schema, input); err != nil {
 		return err
 	}
 
@@ -46,7 +49,7 @@ func (t *Template) Execute(input *map[string]interface{}, outputPath string) err
 	templateFilesDir := filepath.Join(t.LocalPath, "template")
 	templateFs := afero.NewBasePathFs(afero.NewOsFs(), templateFilesDir)
 	outputFs := afero.NewBasePathFs(afero.NewOsFs(), outputPath)
-	err := generateTemplateFiles(templateFs, outputFs, input)
+	err := generate.GenerateTemplateFiles(templateFs, outputFs, input)
 	if err != nil {
 		return err
 	}

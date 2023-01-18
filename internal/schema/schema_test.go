@@ -1,4 +1,4 @@
-package go_cookiecutter
+package schema
 
 import (
 	"testing"
@@ -18,7 +18,7 @@ required:
   - project_name
 `), 0644)
 
-	schema, err := loadSchema(fs)
+	schema, err := LoadSchema(fs)
 	if err != nil {
 		t.Fatalf("got unexpected error while parsing schema: %s", err)
 	}
@@ -27,7 +27,7 @@ required:
 		"project_name": "my-project",
 	}
 
-	err = validateInput(schema, &input)
+	err = ValidateInput(schema, &input)
 	if err != nil {
 		t.Error("Got error when validating test input", err)
 	}
@@ -45,7 +45,7 @@ required:
   - project_name
 `), 0644)
 
-	schema, err := loadSchema(fs)
+	schema, err := LoadSchema(fs)
 	if err != nil {
 		t.Error("got unexpected error while parsing schema")
 	}
@@ -54,7 +54,7 @@ required:
 		"invalid_key": "No One Cares About This Value",
 	}
 
-	err = validateInput(schema, &input)
+	err = ValidateInput(schema, &input)
 	if err == nil {
 		t.Error("Did not get an expected error when passing bad user input")
 	}

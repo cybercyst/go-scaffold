@@ -1,4 +1,4 @@
-package go_cookiecutter
+package schema
 
 import (
 	"context"
@@ -10,7 +10,7 @@ import (
 	"sigs.k8s.io/yaml"
 )
 
-func validateInput(schema *jsonschema.Schema, input *map[string]interface{}) error {
+func ValidateInput(schema *jsonschema.Schema, input *map[string]interface{}) error {
 	ctx := context.Background()
 
 	userInputBytes, err := json.Marshal(input)
@@ -34,7 +34,7 @@ func validateInput(schema *jsonschema.Schema, input *map[string]interface{}) err
 	return nil
 }
 
-func loadSchema(fs afero.Fs) (*jsonschema.Schema, error) {
+func LoadSchema(fs afero.Fs) (*jsonschema.Schema, error) {
 	schemaBytes, err := afero.ReadFile(fs, "schema.yaml")
 	if err != nil {
 		return nil, err

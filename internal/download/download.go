@@ -1,4 +1,4 @@
-package go_cookiecutter
+package download
 
 import (
 	"context"
@@ -10,6 +10,8 @@ import (
 	"oras.land/oras-go/v2"
 	"oras.land/oras-go/v2/content/file"
 	"oras.land/oras-go/v2/registry/remote"
+
+	"github.com/cybercyst/go-cookiecutter/internal/utils"
 )
 
 type DownloadInfo struct {
@@ -17,7 +19,7 @@ type DownloadInfo struct {
 	Version   string
 }
 
-func download(uri string) (*DownloadInfo, error) {
+func Download(uri string) (*DownloadInfo, error) {
 	switch {
 	case isOciArtifactUri(uri):
 		return downloadOci(uri)
@@ -42,7 +44,7 @@ func downloadOci(ociArtifactUri string) (*DownloadInfo, error) {
 		return nil, err
 	}
 
-	tempDir := createTempDir()
+	tempDir := utils.CreateTempDir()
 	dst := file.New(tempDir)
 
 	copyOptions := oras.DefaultCopyOptions
@@ -63,7 +65,7 @@ func isGitRepo(uri string) bool {
 }
 
 func downloadGit(gitRepo string) (*DownloadInfo, error) {
-	tempDir := createTempDir()
+	tempDir := utils.CreateTempDir()
 
 	repo, err := git.PlainClone(tempDir, false, &git.CloneOptions{
 		URL: gitRepo,

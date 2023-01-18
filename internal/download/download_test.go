@@ -1,4 +1,4 @@
-package go_cookiecutter
+package download
 
 import (
 	"testing"
@@ -42,7 +42,7 @@ func TestDectectIsDirectoryShouldDetectValidDirectory(t *testing.T) {
 }
 
 func TestDetectErrorWhenNoValidUriPassed(t *testing.T) {
-	_, got := download("this-isn't-a-valid-uri-or-folder")
+	_, got := Download("this-isn't-a-valid-uri-or-folder")
 	if got == nil {
 		t.Error("invalid uri did not cause an error")
 	}

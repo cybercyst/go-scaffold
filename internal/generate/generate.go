@@ -1,4 +1,4 @@
-package go_cookiecutter
+package generate
 
 import (
 	"io/fs"
@@ -14,32 +14,7 @@ type GeneratedMetadata struct {
 	Input   *map[string]interface{}
 }
 
-func Generate(templateUri string, templateInput *map[string]interface{}, outputPath string) (*GeneratedMetadata, error) {
-	if err := ensurePathExists(outputPath); err != nil {
-		return nil, err
-	}
-
-	template, err := NewTemplate(templateUri)
-	if err != nil {
-		return nil, err
-	}
-
-	if err := template.ValidateInput(templateInput); err != nil {
-		return nil, err
-	}
-
-	if err := template.Execute(templateInput, outputPath); err != nil {
-		return nil, err
-	}
-
-	return &GeneratedMetadata{
-		Uri:     template.Uri,
-		Version: template.Version,
-		Input:   templateInput,
-	}, nil
-}
-
-func generateTemplateFiles(templateFs afero.Fs, outputFs afero.Fs, input *map[string]interface{}) error {
+func GenerateTemplateFiles(templateFs afero.Fs, outputFs afero.Fs, input *map[string]interface{}) error {
 	return afero.Walk(templateFs, ".", func(path string, info fs.FileInfo, err error) error {
 		if err != nil {
 			return err
