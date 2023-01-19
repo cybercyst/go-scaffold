@@ -1,32 +1,34 @@
 package cookiecutter
 
 import (
-	"github.com/cybercyst/go-cookiecutter/internal/generate"
-	"github.com/cybercyst/go-cookiecutter/internal/template"
+	g "github.com/cybercyst/go-cookiecutter/internal/generate"
+	t "github.com/cybercyst/go-cookiecutter/internal/template"
 	"github.com/cybercyst/go-cookiecutter/internal/utils"
 )
 
-func Generate(templateUri string, templateInput *map[string]interface{}, outputPath string) (*generate.GeneratedMetadata, error) {
+func Generate(templateUri string, templateInput *map[string]interface{}, outputPath string) (*g.GeneratedMetadata, error) {
 	if err := utils.EnsurePathExists(outputPath); err != nil {
 		return nil, err
 	}
 
-	t, err := template.NewTemplate(templateUri)
+	template, err := t.NewTemplate(templateUri)
 	if err != nil {
 		return nil, err
 	}
 
-	if err := t.ValidateInput(templateInput); err != nil {
+	if err := template.ValidateInput(templateInput); err != nil {
 		return nil, err
 	}
 
-	if err := t.Execute(templateInput, outputPath); err != nil {
+	createdFiles, err := template.Execute(templateInput, outputPath)
+	if err != nil {
 		return nil, err
 	}
 
-	return &generate.GeneratedMetadata{
-		Uri:     t.Uri,
-		Version: t.Version,
-		Input:   templateInput,
+	return &g.GeneratedMetadata{
+		Uri:          template.Uri,
+		Version:      template.Version,
+		Input:        templateInput,
+		CreatedFiles: &createdFiles,
 	}, nil
 }

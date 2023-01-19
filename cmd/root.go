@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/bclicn/color"
 	"github.com/cybercyst/go-cookiecutter/internal/consts"
 	"github.com/cybercyst/go-cookiecutter/internal/utils"
 	"github.com/cybercyst/go-cookiecutter/pkg/cookiecutter"
@@ -24,16 +25,26 @@ var rootCmd = &cobra.Command{
 
 		input, err := utils.ReadTemplateInput(inputFile)
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "Error: problem reading input: %s", err)
+			fmt.Fprint(os.Stderr, color.Red("[ERROR]"), " problem reading input: ", err)
 			os.Exit(1)
 		}
 
-		// TODO: get metadata and write to file
-		_, err = cookiecutter.Generate(uri, &input, outputDirectory)
+		fmt.Println()
+		fmt.Println("Generating template", color.BBlue(uri))
+
+		metadata, err := cookiecutter.Generate(uri, &input, outputDirectory)
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "Error: problem generating template: %s", err)
+			fmt.Fprint(os.Stderr, color.Red("[ERROR]"), " problem generating template: ", err)
 			os.Exit(1)
 		}
+
+		fmt.Println()
+		for _, file := range *metadata.CreatedFiles {
+			fmt.Println(color.Green("CREATE\t"), file)
+		}
+
+		fmt.Println()
+		fmt.Println("Template", color.BBlue(uri), "successfully generated")
 	},
 }
 

@@ -9,13 +9,15 @@ import (
 )
 
 type GeneratedMetadata struct {
-	Uri     string
-	Version string
-	Input   *map[string]interface{}
+	Uri          string                  `json:"uri"`
+	Version      string                  `json:"version"`
+	Input        *map[string]interface{} `json:"input"`
+	CreatedFiles *[]string               `json:"-"`
 }
 
-func GenerateTemplateFiles(templateFs afero.Fs, outputFs afero.Fs, input *map[string]interface{}) error {
-	return afero.Walk(templateFs, ".", func(path string, info fs.FileInfo, err error) error {
+func GenerateTemplateFiles(templateFs afero.Fs, outputFs afero.Fs, input *map[string]interface{}) ([]string, error) {
+	createdFiles := []string{}
+	err := afero.Walk(templateFs, ".", func(path string, info fs.FileInfo, err error) error {
 		if err != nil {
 			return err
 		}
@@ -50,8 +52,12 @@ func GenerateTemplateFiles(templateFs afero.Fs, outputFs afero.Fs, input *map[st
 			return err
 		}
 
+		createdFiles = append(createdFiles, templatedPathName)
+
 		return nil
 	})
+
+	return createdFiles, err
 }
 
 func executeTemplate(templateBytes []byte, input *map[string]interface{}) (string, error) {

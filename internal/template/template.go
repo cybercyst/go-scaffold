@@ -45,14 +45,15 @@ func (t *Template) ValidateInput(input *map[string]interface{}) error {
 	return nil
 }
 
-func (t *Template) Execute(input *map[string]interface{}, outputPath string) error {
+func (t *Template) Execute(input *map[string]interface{}, outputPath string) ([]string, error) {
 	templateFilesDir := filepath.Join(t.LocalPath, "template")
 	templateFs := afero.NewBasePathFs(afero.NewOsFs(), templateFilesDir)
 	outputFs := afero.NewBasePathFs(afero.NewOsFs(), outputPath)
-	err := generate.GenerateTemplateFiles(templateFs, outputFs, input)
+
+	createdFiles, err := generate.GenerateTemplateFiles(templateFs, outputFs, input)
 	if err != nil {
-		return err
+		return []string{}, err
 	}
 
-	return nil
+	return createdFiles, nil
 }

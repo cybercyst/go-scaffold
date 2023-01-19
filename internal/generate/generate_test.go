@@ -17,9 +17,17 @@ project_name is {{ project_name }}
 		"project_name": "My Project",
 	}
 
-	err := GenerateTemplateFiles(templateFs, outputFs, &input)
+	gotCreatedFiles, err := GenerateTemplateFiles(templateFs, outputFs, &input)
 	if err != nil {
 		t.Fatalf("unexpected error thrown while generating template: %s", err)
+	}
+
+	wantCreatedFiles := []string{"My Project.md"}
+	if len(gotCreatedFiles) != len(wantCreatedFiles) {
+		t.Fatalf("received wrong number of created files as response")
+	}
+	if gotCreatedFiles[0] != wantCreatedFiles[0] {
+		t.Fatalf("received wrong created files as response")
 	}
 
 	_, err = outputFs.Stat("My Project.md")

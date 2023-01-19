@@ -35,6 +35,7 @@ require (
 )
 
 require (
+	github.com/bclicn/color v0.0.0-20180711051946-108f2023dc84
 	github.com/flosch/pongo2/v6 v6.0.0
 	github.com/go-git/go-git/v5 v5.5.2
 	github.com/inconshreveable/mousetrap v1.0.1 // indirect
