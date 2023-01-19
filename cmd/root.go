@@ -3,12 +3,14 @@ package cmd
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 
 	"github.com/bclicn/color"
 	"github.com/cybercyst/go-cookiecutter/internal/consts"
 	"github.com/cybercyst/go-cookiecutter/internal/utils"
 	"github.com/cybercyst/go-cookiecutter/pkg/cookiecutter"
 	"github.com/spf13/cobra"
+	"gopkg.in/yaml.v3"
 )
 
 var (
@@ -35,6 +37,17 @@ var rootCmd = &cobra.Command{
 		metadata, err := cookiecutter.Generate(uri, &input, outputDirectory)
 		if err != nil {
 			fmt.Fprint(os.Stderr, color.Red("[ERROR]"), " problem generating template: ", err)
+			os.Exit(1)
+		}
+
+		metadataYaml, err := yaml.Marshal(metadata)
+		if err != nil {
+			fmt.Fprint(os.Stderr, color.Red("[ERROR]"), " unable to parse generated artifact metadata: ", err)
+			os.Exit(1)
+		}
+		err = os.WriteFile(filepath.Join(outputDirectory, ".metadata.yaml"), metadataYaml, 0644)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, color.Red("[ERROR]"), " unable to save generated artifact metadata: ", err)
 			os.Exit(1)
 		}
 

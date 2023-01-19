@@ -9,10 +9,10 @@ import (
 )
 
 type GeneratedMetadata struct {
-	Uri          string                  `json:"uri"`
-	Version      string                  `json:"version"`
-	Input        *map[string]interface{} `json:"input"`
-	CreatedFiles *[]string               `json:"-"`
+	Uri          string                  `json:"uri" yaml:"uri"`
+	Version      string                  `json:"version" yaml:"version"`
+	Input        *map[string]interface{} `json:"input" yaml:"input"`
+	CreatedFiles *[]string               `json:"-" yaml:"-"`
 }
 
 func GenerateTemplateFiles(templateFs afero.Fs, outputFs afero.Fs, input *map[string]interface{}) ([]string, error) {
