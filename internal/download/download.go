@@ -45,7 +45,10 @@ func downloadOci(ociArtifactUri string) (*DownloadInfo, error) {
 	}
 
 	tempDir := utils.CreateTempDir()
-	dst := file.New(tempDir)
+	dst, err := file.New(tempDir)
+	if err != nil {
+		return nil, err
+	}
 
 	copyOptions := oras.DefaultCopyOptions
 	desc, err := oras.Copy(ctx, repo, repo.Reference.Reference, dst, repo.Reference.Reference, copyOptions)
