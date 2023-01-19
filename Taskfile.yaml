@@ -1,0 +1,26 @@
+version: 3
+
+tasks:
+  test:
+    cmds:
+      - go test -v ./... -cover
+
+  build:
+    deps:
+      - test
+    cmds:
+      - go build -v .
+
+  install:
+    deps:
+      - build
+    cmds:
+      - go install -v
+
+  uninstall:
+    cmds:
+      - rm -rf $(go env GOPATH)/bin/go-cookiecutter
+
+  clean:
+    cmds:
+      - go clean
