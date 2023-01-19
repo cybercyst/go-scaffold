@@ -107,6 +107,6 @@ func useDirectory(filePath string) (*DownloadInfo, error) {
 
 	return &DownloadInfo{
 		LocalPath: filePath,
-		Version:   "",
+		Version:   "HEAD",
 	}, nil
 }
