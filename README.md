@@ -81,3 +81,7 @@ My Project
 
 ```
 
+## LICENSE
+
+(MIT)[https://github.com/cybercyst/go-cookiecutter/blob/main/LICENSE]
+
