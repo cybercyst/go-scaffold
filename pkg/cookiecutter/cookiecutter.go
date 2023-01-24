@@ -2,9 +2,24 @@ package cookiecutter
 
 import (
 	g "github.com/cybercyst/go-cookiecutter/internal/generate"
+	s "github.com/cybercyst/go-cookiecutter/internal/schema"
 	t "github.com/cybercyst/go-cookiecutter/internal/template"
 	"github.com/cybercyst/go-cookiecutter/internal/utils"
 )
+
+func ReadSchema(templateUri string) ([]byte, error) {
+	template, err := t.NewTemplate(templateUri)
+	if err != nil {
+		return nil, err
+	}
+
+	schemaBytes, err := s.ReadSchema(template.LocalPath)
+	if err != nil {
+		return nil, err
+	}
+
+	return schemaBytes, nil
+}
 
 func Generate(templateUri string, templateInput *map[string]interface{}, outputPath string) (*g.GeneratedMetadata, error) {
 	if err := utils.EnsurePathExists(outputPath); err != nil {

@@ -4,7 +4,8 @@ import (
 	"io/fs"
 	"path/filepath"
 
-	"github.com/flosch/pongo2/v6"
+	_ "github.com/flosch/pongo2-addons"
+	"github.com/flosch/pongo2/v4"
 	"github.com/spf13/afero"
 )
 

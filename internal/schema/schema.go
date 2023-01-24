@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 
+	"github.com/imdario/mergo"
 	"github.com/qri-io/jsonschema"
 	"github.com/spf13/afero"
 	"sigs.k8s.io/yaml"
@@ -40,16 +41,52 @@ func LoadSchema(fs afero.Fs) (*jsonschema.Schema, error) {
 		return nil, err
 	}
 
-	schemaJson, err := yaml.YAMLToJSON(schemaBytes)
+	var schemaRaw interface{}
+	if err := yaml.Unmarshal(schemaBytes, &schemaRaw); err != nil {
+		return nil, err
+	}
+
+	var schema map[string]interface{}
+
+	switch schemaRaw := schemaRaw.(type) {
+	case []interface{}:
+		for _, schemaSection := range schemaRaw {
+			if err := mergo.Merge(&schema, schemaSection, mergo.WithAppendSlice); err != nil {
+				return nil, err
+			}
+		}
+	case map[string]interface{}:
+		schema = schemaRaw
+	default:
+		return nil, fmt.Errorf("got unexpected value from schema.yaml")
+	}
+
+	schemaJsonBytes, err := json.Marshal(schema)
 	if err != nil {
 		return nil, err
 	}
 
 	rs := &jsonschema.Schema{}
-	err = json.Unmarshal(schemaJson, rs)
+	err = json.Unmarshal(schemaJsonBytes, rs)
 	if err != nil {
 		return nil, err
 	}
 
 	return rs, nil
+}
+
+func ReadSchema(templatePath string) ([]byte, error) {
+	fs := afero.NewBasePathFs(afero.NewOsFs(), templatePath)
+
+	schemaYamlBytes, err := afero.ReadFile(fs, "schema.yaml")
+	if err != nil {
+		return nil, err
+	}
+
+	schemaJsonBytes, err := yaml.YAMLToJSON(schemaYamlBytes)
+	if err != nil {
+		return nil, err
+	}
+
+	return schemaJsonBytes, nil
 }
