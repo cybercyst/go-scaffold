@@ -4,8 +4,7 @@ import (
 	"io/fs"
 	"path/filepath"
 
-	_ "github.com/flosch/pongo2-addons"
-	"github.com/flosch/pongo2/v4"
+	"github.com/flosch/pongo2/v6"
 	"github.com/spf13/afero"
 )
 
@@ -62,6 +61,8 @@ func GenerateTemplateFiles(templateFs afero.Fs, outputFs afero.Fs, input *map[st
 }
 
 func executeTemplate(templateBytes []byte, input *map[string]interface{}) (string, error) {
+	initFilters()
+
 	template, err := pongo2.FromBytes(templateBytes)
 	if err != nil {
 		return "", err

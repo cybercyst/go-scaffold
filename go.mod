@@ -3,7 +3,6 @@ module github.com/cybercyst/go-cookiecutter
 go 1.19
 
 require (
-	github.com/flosch/pongo2/v4 v4.0.2
 	github.com/imdario/mergo v0.3.13
 	github.com/spf13/cobra v1.6.1
 	oras.land/oras-go/v2 v2.0.0
@@ -11,12 +10,10 @@ require (
 
 require (
 	github.com/Microsoft/go-winio v0.6.0 // indirect
-	github.com/ProtonMail/go-crypto v0.0.0-20230117203413-a47887b8f098 // indirect
+	github.com/ProtonMail/go-crypto v0.0.0-20230124153114-0acdc8ae009b // indirect
 	github.com/acomagu/bufpipe v1.0.3 // indirect
 	github.com/cloudflare/circl v1.3.1 // indirect
 	github.com/emirpasic/gods v1.18.1 // indirect
-	github.com/extemporalgenome/slug v0.0.0-20150414033109-0320c85e32e0 // indirect
-	github.com/flosch/go-humanize v0.0.0-20140728123800-3ba51eabe506 // indirect
 	github.com/go-git/gcfg v1.5.0 // indirect
 	github.com/go-git/go-billy/v5 v5.4.0 // indirect
 	github.com/jbenet/go-context v0.0.0-20150711004518-d14ea06fba99 // indirect
@@ -27,7 +24,6 @@ require (
 	github.com/pjbgf/sha1cd v0.2.3 // indirect
 	github.com/pkg/diff v0.0.0-20210226163009-20ebb0f2a09e // indirect
 	github.com/qri-io/jsonpointer v0.1.1 // indirect
-	github.com/russross/blackfriday/v2 v2.1.0 // indirect
 	github.com/sergi/go-diff v1.3.1 // indirect
 	github.com/skeema/knownhosts v1.1.0 // indirect
 	github.com/stretchr/testify v1.8.1 // indirect
@@ -42,7 +38,8 @@ require (
 
 require (
 	github.com/bclicn/color v0.0.0-20180711051946-108f2023dc84
-	github.com/flosch/pongo2-addons v0.0.0-20210526150811-f969446c5b72
+	github.com/extemporalgenome/slug v0.0.0-20150414033109-0320c85e32e0
+	github.com/flosch/pongo2/v6 v6.0.0
 	github.com/go-git/go-git/v5 v5.5.2
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
 	github.com/qri-io/jsonschema v0.2.1

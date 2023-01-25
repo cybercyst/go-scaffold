@@ -48,3 +48,19 @@ project_name is My Project
 		t.Fatalf("expected %s but got %s", want, got)
 	}
 }
+
+func TestExecuteTemplateShouldHaveSlugifyFilter(t *testing.T) {
+	template := "{{ my_variable | slugify }}"
+	input := map[string]interface{}{
+		"my_variable": "My WeIrDly Capped Value",
+	}
+	got, err := executeTemplate([]byte(template), &input)
+	if err != nil {
+		t.Fatalf("unexpected error while executing template: %s", err)
+	}
+	want := "my-weirdly-capped-value"
+
+	if got != want {
+		t.Fatalf("expected %s to be %s after executing template", got, want)
+	}
+}
