@@ -8,7 +8,7 @@ import (
 	"github.com/imdario/mergo"
 	"github.com/qri-io/jsonschema"
 	"github.com/spf13/afero"
-	"sigs.k8s.io/yaml"
+	"gopkg.in/yaml.v2"
 )
 
 func ValidateInput(schema *jsonschema.Schema, input *map[string]interface{}) error {
@@ -83,7 +83,12 @@ func ReadSchema(templatePath string) ([]byte, error) {
 		return nil, err
 	}
 
-	schemaJsonBytes, err := yaml.YAMLToJSON(schemaYamlBytes)
+	schema := yaml.MapSlice{}
+	if err := yaml.Unmarshal(schemaYamlBytes, &schema); err != nil {
+		return nil, err
+	}
+
+	schemaJsonBytes, err := json.Marshal(schema)
 	if err != nil {
 		return nil, err
 	}
