@@ -5,15 +5,17 @@ import (
 	s "github.com/cybercyst/go-cookiecutter/internal/schema"
 	t "github.com/cybercyst/go-cookiecutter/internal/template"
 	"github.com/cybercyst/go-cookiecutter/internal/utils"
+	"github.com/spf13/afero"
 )
 
-func ReadSchema(templateUri string) ([]byte, error) {
+func ReadSchemaBytes(templateUri string) ([]byte, error) {
 	template, err := t.NewTemplate(templateUri)
 	if err != nil {
 		return nil, err
 	}
 
-	schemaBytes, err := s.ReadSchema(template.LocalPath)
+	fs := afero.NewBasePathFs(afero.NewOsFs(), template.LocalPath)
+	schemaBytes, err := s.ReadSchemaBytes(fs)
 	if err != nil {
 		return nil, err
 	}

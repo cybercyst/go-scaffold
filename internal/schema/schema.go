@@ -8,7 +8,7 @@ import (
 	"github.com/imdario/mergo"
 	"github.com/qri-io/jsonschema"
 	"github.com/spf13/afero"
-	"gopkg.in/yaml.v2"
+	"sigs.k8s.io/yaml"
 )
 
 func ValidateInput(schema *jsonschema.Schema, input *map[string]interface{}) error {
@@ -42,7 +42,12 @@ func LoadSchema(fs afero.Fs) (*jsonschema.Schema, error) {
 	}
 
 	var schemaRaw interface{}
-	if err := yaml.Unmarshal(schemaBytes, &schemaRaw); err != nil {
+	schemaJsonBytes, err := yaml.YAMLToJSON(schemaBytes)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := json.Unmarshal(schemaJsonBytes, &schemaRaw); err != nil {
 		return nil, err
 	}
 
@@ -51,7 +56,7 @@ func LoadSchema(fs afero.Fs) (*jsonschema.Schema, error) {
 	switch schemaRaw := schemaRaw.(type) {
 	case []interface{}:
 		for _, schemaSection := range schemaRaw {
-			if err := mergo.Merge(&schema, schemaSection, mergo.WithAppendSlice); err != nil {
+			if err := mergo.Merge(&schema, schemaSection); err != nil {
 				return nil, err
 			}
 		}
@@ -61,13 +66,13 @@ func LoadSchema(fs afero.Fs) (*jsonschema.Schema, error) {
 		return nil, fmt.Errorf("got unexpected value from schema.yaml")
 	}
 
-	schemaJsonBytes, err := json.Marshal(schema)
+	schemaBytes, err = json.Marshal(schema)
 	if err != nil {
 		return nil, err
 	}
 
 	rs := &jsonschema.Schema{}
-	err = json.Unmarshal(schemaJsonBytes, rs)
+	err = json.Unmarshal(schemaBytes, rs)
 	if err != nil {
 		return nil, err
 	}
@@ -75,23 +80,11 @@ func LoadSchema(fs afero.Fs) (*jsonschema.Schema, error) {
 	return rs, nil
 }
 
-func ReadSchema(templatePath string) ([]byte, error) {
-	fs := afero.NewBasePathFs(afero.NewOsFs(), templatePath)
-
+func ReadSchemaBytes(fs afero.Fs) ([]byte, error) {
 	schemaYamlBytes, err := afero.ReadFile(fs, "schema.yaml")
 	if err != nil {
 		return nil, err
 	}
 
-	schema := yaml.MapSlice{}
-	if err := yaml.Unmarshal(schemaYamlBytes, &schema); err != nil {
-		return nil, err
-	}
-
-	schemaJsonBytes, err := json.Marshal(schema)
-	if err != nil {
-		return nil, err
-	}
-
-	return schemaJsonBytes, nil
+	return schemaYamlBytes, nil
 }
