@@ -3,7 +3,6 @@ package template
 import (
 	"encoding/json"
 	"errors"
-	"strings"
 
 	"github.com/spf13/afero"
 	"gopkg.in/yaml.v3"
