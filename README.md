@@ -1,6 +1,6 @@
-# go-cookiecutter
+# go-scaffold
 
-Go-cookiecutter is a cookiecutter-like CLI & library to generate templated artifacts
+go-scaffold is a cookiecutter-like CLI & library to generate templated artifacts
 
 ## Installation
 
@@ -65,7 +65,7 @@ project_name: My Project
 ### Generating the template
 
 ```
-$ go-cookiecutter /path/to/sample-template --input-file /path/to/input.yaml --output-directory /output/path
+$ go-scaffold /path/to/sample-template --input-file /path/to/input.yaml --output-directory /output/path
 
 $ tree /output/path
 
@@ -83,5 +83,5 @@ My Project
 
 ## LICENSE
 
-(MIT)[https://github.com/cybercyst/go-cookiecutter/blob/main/LICENSE]
+(MIT)[https://github.com/cybercyst/go-scaffold/blob/main/LICENSE]
 

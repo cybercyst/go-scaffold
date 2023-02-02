@@ -19,7 +19,7 @@ tasks:
 
   uninstall:
     cmds:
-      - rm -rf $(go env GOPATH)/bin/go-cookiecutter
+      - rm -rf $(go env GOPATH)/bin/go-scaffold
 
   clean:
     cmds:

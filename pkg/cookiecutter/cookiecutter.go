@@ -1,10 +1,10 @@
 package cookiecutter
 
 import (
-	g "github.com/cybercyst/go-cookiecutter/internal/generate"
-	s "github.com/cybercyst/go-cookiecutter/internal/schema"
-	t "github.com/cybercyst/go-cookiecutter/internal/template"
-	"github.com/cybercyst/go-cookiecutter/internal/utils"
+	g "github.com/cybercyst/go-scaffold/internal/generate"
+	s "github.com/cybercyst/go-scaffold/internal/schema"
+	t "github.com/cybercyst/go-scaffold/internal/template"
+	"github.com/cybercyst/go-scaffold/internal/utils"
 	"github.com/spf13/afero"
 )
 

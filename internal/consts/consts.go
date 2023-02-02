@@ -1,3 +1,3 @@
 package consts
 
-const ProgramName = "go-cookiecutter"
+const ProgramName = "go-scaffold"

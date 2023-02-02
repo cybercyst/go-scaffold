@@ -1,16 +1,16 @@
 # Test for missing template arg
-! exec go-cookiecutter
+! exec go-scaffold
 stderr 'Error: accepts 1 arg\(s\), received 0'
-stderr 'Usage:\n  go-cookiecutter \[TEMPLATE\] \[flags\]'
+stderr 'Usage:\n  go-scaffold \[TEMPLATE\] \[flags\]'
 ! stdout .
 
 # Test for missing input-file flag
-! exec go-cookiecutter some-template
+! exec go-scaffold some-template
 stderr 'Error: required flag\(s\) "input-file" not set'
 ! stdout .
 
 # Test for non existant directory
-! exec go-cookiecutter i-dont-exist --input-file input.yaml
+! exec go-scaffold i-dont-exist --input-file input.yaml
 stderr 'open i-dont-exist: no such file or directory'
 stdout 'Generating template'
 

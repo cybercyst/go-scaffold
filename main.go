@@ -3,7 +3,7 @@ package main
 import (
 	"os"
 
-	"github.com/cybercyst/go-cookiecutter/cmd"
+	"github.com/cybercyst/go-scaffold/cmd"
 )
 
 func cmdMain() int {

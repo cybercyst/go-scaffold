@@ -1,5 +1,5 @@
 # Happy path test
-exec go-cookiecutter test-template --input-file input.yaml --output-directory output
+exec go-scaffold test-template --input-file input.yaml --output-directory output
 ! stderr .
 
 cmp output/my-project/my-project.txt expected_file

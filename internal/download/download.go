@@ -11,7 +11,7 @@ import (
 	"oras.land/oras-go/v2/content/file"
 	"oras.land/oras-go/v2/registry/remote"
 
-	"github.com/cybercyst/go-cookiecutter/internal/utils"
+	"github.com/cybercyst/go-scaffold/internal/utils"
 )
 
 type DownloadInfo struct {

@@ -6,9 +6,9 @@ import (
 	"path/filepath"
 
 	"github.com/bclicn/color"
-	"github.com/cybercyst/go-cookiecutter/internal/consts"
-	"github.com/cybercyst/go-cookiecutter/internal/utils"
-	"github.com/cybercyst/go-cookiecutter/pkg/cookiecutter"
+	"github.com/cybercyst/go-scaffold/internal/consts"
+	"github.com/cybercyst/go-scaffold/internal/utils"
+	"github.com/cybercyst/go-scaffold/pkg/cookiecutter"
 	"github.com/spf13/cobra"
 	"gopkg.in/yaml.v3"
 )

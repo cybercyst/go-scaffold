@@ -6,7 +6,7 @@ import (
 	"log"
 	"os"
 
-	"github.com/cybercyst/go-cookiecutter/internal/consts"
+	"github.com/cybercyst/go-scaffold/internal/consts"
 	"gopkg.in/yaml.v2"
 )
 

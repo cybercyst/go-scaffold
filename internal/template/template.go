@@ -3,9 +3,9 @@ package template
 import (
 	"path/filepath"
 
-	"github.com/cybercyst/go-cookiecutter/internal/download"
-	"github.com/cybercyst/go-cookiecutter/internal/generate"
-	"github.com/cybercyst/go-cookiecutter/internal/schema"
+	"github.com/cybercyst/go-scaffold/internal/download"
+	"github.com/cybercyst/go-scaffold/internal/generate"
+	"github.com/cybercyst/go-scaffold/internal/schema"
 	"github.com/qri-io/jsonschema"
 	"github.com/spf13/afero"
 )

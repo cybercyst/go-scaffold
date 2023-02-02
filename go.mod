@@ -1,4 +1,4 @@
-module github.com/cybercyst/go-cookiecutter
+module github.com/cybercyst/go-scaffold
 
 go 1.19
 
