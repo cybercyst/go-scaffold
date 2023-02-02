@@ -14,6 +14,7 @@ type Template struct {
 	Uri       string
 	LocalPath string
 	Version   string
+	Config    *TemplateConfig
 	Schema    *jsonschema.Schema
 }
 
