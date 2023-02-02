@@ -72,3 +72,22 @@ func TestReadJsonConfig(t *testing.T) {
 		t.Fatalf("want %+v and got %+v", want, got)
 	}
 }
+
+func TestNoTemplateConfig(t *testing.T) {
+	fs := afero.NewMemMapFs()
+
+	_, err := LoadConfig(fs)
+	if err == nil {
+		t.Fatal("failed to get expected error when missing template config")
+	}
+}
+
+func TestTemplateConfigMissingRequiredFields(t *testing.T) {
+	fs := afero.NewMemMapFs()
+	afero.WriteFile(fs, "template.yaml", []byte(""), 0644)
+
+	_, err := LoadConfig(fs)
+	if err == nil {
+		t.Fatal("failed to get expected error when config is missing required properties")
+	}
+}
