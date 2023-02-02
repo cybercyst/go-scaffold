@@ -3,6 +3,7 @@ package template
 import (
 	"encoding/json"
 	"errors"
+	"strings"
 
 	"github.com/spf13/afero"
 	"gopkg.in/yaml.v3"
@@ -24,7 +25,7 @@ const (
 	YAML
 )
 
-func readConfig(fs afero.Fs, fname string, configType ConfigType) (*TemplateConfig, error) {
+func readConfigFile(fs afero.Fs, fname string, configType ConfigType) (*TemplateConfig, error) {
 	var config TemplateConfig
 
 	bytes, err := afero.ReadFile(fs, fname)
@@ -48,21 +49,49 @@ func readConfig(fs afero.Fs, fname string, configType ConfigType) (*TemplateConf
 	return &config, nil
 }
 
-func LoadConfig(fs afero.Fs) (*TemplateConfig, error) {
+func loadConfig(fs afero.Fs) (*TemplateConfig, error) {
 	exists, _ := afero.Exists(fs, "template.yaml")
 	if exists {
-		return readConfig(fs, "template.yaml", YAML)
+		return readConfigFile(fs, "template.yaml", YAML)
 	}
 
 	exists, _ = afero.Exists(fs, "template.yml")
 	if exists {
-		return readConfig(fs, "template.yml", YAML)
+		return readConfigFile(fs, "template.yml", YAML)
 	}
 
 	exists, _ = afero.Exists(fs, "template.json")
 	if exists {
-		return readConfig(fs, "template.json", JSON)
+		return readConfigFile(fs, "template.json", JSON)
 	}
 
 	return nil, errors.New("no valid template definition found")
+}
+
+func LoadConfig(fs afero.Fs) (*TemplateConfig, error) {
+	config, err := loadConfig(fs)
+	if err != nil {
+		return nil, err
+	}
+
+	err = config.Validate()
+	if err != nil {
+		return nil, err
+	}
+
+	config.Description = strings.TrimSpace(strings.ReplaceAll(config.Description, "\n", " "))
+
+	return config, nil
+}
+
+func (config *TemplateConfig) Validate() error {
+	if config.Title == "" {
+		return errors.New("required property title missing from template config")
+	}
+
+	if config.Version == "" {
+		return errors.New("required property version missing from template config")
+	}
+
+	return nil
 }
