@@ -79,8 +79,6 @@ func LoadConfig(fs afero.Fs) (*TemplateConfig, error) {
 		return nil, err
 	}
 
-	config.Description = strings.TrimSpace(strings.ReplaceAll(config.Description, "\n", " "))
-
 	return config, nil
 }
 
