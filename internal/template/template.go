@@ -25,7 +25,12 @@ func NewTemplate(uri string) (*Template, error) {
 	}
 
 	templateFs := afero.NewBasePathFs(afero.NewOsFs(), downloadInfo.LocalPath)
-	schema, err := schema.LoadSchema(templateFs)
+	config, err := LoadConfig(templateFs)
+	if err != nil {
+		return nil, err
+	}
+
+	schema, err := schema.LoadSchema(config.RawSchema)
 	if err != nil {
 		return nil, err
 	}

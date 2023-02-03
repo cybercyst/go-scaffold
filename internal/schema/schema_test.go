@@ -1,128 +1,47 @@
 package schema
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/spf13/afero"
 )
 
-func TestReadSchemaBytesShouldReturnOrderedKeys(t *testing.T) {
-	fs := afero.NewMemMapFs()
-	afero.WriteFile(fs, "schema.yaml", []byte(`
-- title: Let's get started, please name your web service
-  required:
-      - project_name
-  properties:
-      project_name:
-          title: Name
-          type: string
-          description: Unique name of the component
-          ui:autofocus: true
-      owner:
-          title: Owner
-          type: string
-          description: Then name of the person/team responsible for this web service
-          ui:autofocus: true
-- title: Let's configure your project's Docker image
-  required:
-      - image_registry
-      - image_repository
-      - image_tag
-      - image_port
-  properties:
-      image_registry:
-          title: Image Registry
-          type: string
-          description: The registry you would like to store your image in, default is Docker Hub
-          default: docker.io
-          ui:autofocus: true
-      image_repository:
-          title: Repository Name
-          type: string
-          description: The repository you want to push your Docker image to
-          ui:autofocus: true
-      image_tag:
-          title: Initial Image Tag
-          type: string
-          description: Initial version of the Docker image tag, e.g. 0.0.1
-          default: 0.0.1
-          ui:autofocus: true
-      image_port:
-          title: Container Port
-          type: integer
-          description: The port on your host machine that your running container will be mapped to, default is 4000
-          default: 4000
-          ui:autofocus: true
-`), 0644)
-
-	schema, err := ReadSchemaBytes(fs)
-	if err != nil {
-		t.Fatalf("got unexpected error while parsing schema: %s", err)
+func TestValidateSchemaShouldMergeSchemaEntries(t *testing.T) {
+	rawSchema := []interface{}{
+		map[string]interface{}{
+			"required": []string{
+				"project_name",
+			},
+			"properties": map[string]interface{}{
+				"project_name": map[string]interface{}{
+					"title":       "Project Name",
+					"type":        "string",
+					"description": "Give your project a name to dazzle",
+				},
+			},
+		},
+		map[string]interface{}{
+			"required": []string{
+				"owner",
+			},
+			"properties": map[string]interface{}{
+				"owner": map[string]interface{}{
+					"title":       "Owner",
+					"type":        "string",
+					"description": "The owner of this project. This will go in the CODEOWNERS file",
+				},
+			},
+		},
 	}
 
-	schemaStr := string(schema)
-
-	fmt.Println(schemaStr)
-}
-
-func TestValidateSchemaShouldWorkWithBackstageLikeSchema(t *testing.T) {
-	fs := afero.NewMemMapFs()
-	afero.WriteFile(fs, "schema.yaml", []byte(`
-- title: Let's get started, please name your web service
-  required:
-      - project_name
-  properties:
-      project_name:
-          title: Name
-          type: string
-          description: Unique name of the component
-          ui:autofocus: true
-      owner:
-          title: Owner
-          type: string
-          description: Then name of the person/team responsible for this web service
-          ui:autofocus: true
-- title: Let's configure your project's Docker image
-  required:
-      - image_registry
-      - image_repository
-      - image_tag
-      - image_port
-  properties:
-      image_registry:
-          title: Image Registry
-          type: string
-          description: The registry you would like to store your image in, default is Docker Hub
-          default: docker.io
-          ui:autofocus: true
-      image_repository:
-          title: Repository Name
-          type: string
-          description: The repository you want to push your Docker image to
-          ui:autofocus: true
-      image_tag:
-          title: Initial Image Tag
-          type: string
-          description: Initial version of the Docker image tag, e.g. 0.0.1
-          default: 0.0.1
-          ui:autofocus: true
-      image_port:
-          title: Container Port
-          type: integer
-          description: The port on your host machine that your running container will be mapped to, default is 4000
-          default: 4000
-          ui:autofocus: true
-`), 0644)
-
-	schema, err := LoadSchema(fs)
+	schema, err := LoadSchema(rawSchema)
 	if err != nil {
 		t.Fatalf("got unexpected error while parsing schema: %s", err)
 	}
 
 	input := map[string]interface{}{
-		"project_name":     "my-project",
-		"image_repository": "my-image-repo-name",
+		"project_name": "my-project",
+		"owner":        "test guy",
 	}
 
 	err = ValidateInput(schema, &input)

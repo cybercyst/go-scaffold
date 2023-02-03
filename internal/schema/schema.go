@@ -8,7 +8,6 @@ import (
 	"github.com/imdario/mergo"
 	"github.com/qri-io/jsonschema"
 	"github.com/spf13/afero"
-	"sigs.k8s.io/yaml"
 )
 
 func ValidateInput(schema *jsonschema.Schema, input *map[string]interface{}) error {
@@ -35,28 +34,13 @@ func ValidateInput(schema *jsonschema.Schema, input *map[string]interface{}) err
 	return nil
 }
 
-func LoadSchema(fs afero.Fs) (*jsonschema.Schema, error) {
-	schemaBytes, err := afero.ReadFile(fs, "schema.yaml")
-	if err != nil {
-		return nil, err
-	}
-
-	var schemaRaw interface{}
-	schemaJsonBytes, err := yaml.YAMLToJSON(schemaBytes)
-	if err != nil {
-		return nil, err
-	}
-
-	if err := json.Unmarshal(schemaJsonBytes, &schemaRaw); err != nil {
-		return nil, err
-	}
-
+func LoadSchema(schemaRaw interface{}) (*jsonschema.Schema, error) {
 	var schema map[string]interface{}
 
 	switch schemaRaw := schemaRaw.(type) {
 	case []interface{}:
 		for _, schemaSection := range schemaRaw {
-			if err := mergo.Merge(&schema, schemaSection); err != nil {
+			if err := mergo.Merge(&schema, schemaSection, mergo.WithAppendSlice); err != nil {
 				return nil, err
 			}
 		}
@@ -66,7 +50,7 @@ func LoadSchema(fs afero.Fs) (*jsonschema.Schema, error) {
 		return nil, fmt.Errorf("got unexpected value from schema.yaml")
 	}
 
-	schemaBytes, err = json.Marshal(schema)
+	schemaBytes, err := json.Marshal(schema)
 	if err != nil {
 		return nil, err
 	}
