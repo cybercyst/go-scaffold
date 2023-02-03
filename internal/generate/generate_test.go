@@ -6,6 +6,52 @@ import (
 	"github.com/spf13/afero"
 )
 
+func TestGenerateJsonFilter(t *testing.T) {
+	templateFs := afero.NewMemMapFs()
+	afero.WriteFile(templateFs, "template_test", []byte(`{{ json | json }}`), 0644)
+	outputFs := afero.NewMemMapFs()
+	input := map[string]interface{}{
+		"json": map[string]interface{}{
+			"strVal":  "a",
+			"numVal":  123,
+			"boolVal": true,
+			"arrayVal": []string{
+				"one",
+				"two",
+				"banana",
+			},
+			"objVal": map[string]interface{}{
+				"nestedVal": "hi there",
+			},
+		},
+	}
+
+	_, err := GenerateTemplateFiles(templateFs, outputFs, &input)
+	if err != nil {
+		t.Fatalf("unexpected error thrown while generating template: %s", err)
+	}
+
+	got, err := afero.ReadFile(outputFs, "template_test")
+	if err != nil {
+		t.Fatalf("unexpected error while reading generated file 'template_test': %s", err)
+	}
+
+	// interface values are sorted alphabetically
+	want := `{
+  "arrayVal": ["one", "two", "banana"],
+  "boolVal": true,
+  "numVal": 123,
+  "objVal": {
+	"nestedVal": "hi there"
+  },
+  "strVal": "a"
+}`
+
+	if string(got) != want {
+		t.Fatalf("expected %s but got %s", want, got)
+	}
+}
+
 func TestGenerateYamlFilter(t *testing.T) {
 	templateFs := afero.NewMemMapFs()
 	afero.WriteFile(templateFs, "template_test", []byte(`{{ yaml | yaml }}`), 0644)
