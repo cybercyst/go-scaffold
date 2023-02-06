@@ -39,6 +39,7 @@ func NewTemplate(uri string) (*Template, error) {
 		Uri:       uri,
 		LocalPath: downloadInfo.LocalPath,
 		Version:   downloadInfo.Version,
+		Config:    config,
 		Schema:    schema,
 	}, nil
 }
