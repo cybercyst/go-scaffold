@@ -7,7 +7,7 @@ import (
 	"os"
 
 	"github.com/cybercyst/go-scaffold/internal/consts"
-	"gopkg.in/yaml.v2"
+	"gopkg.in/yaml.v3"
 )
 
 func ReadTemplateInput(inputFilePath string) (map[string]interface{}, error) {

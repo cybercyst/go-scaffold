@@ -8,7 +8,7 @@ import (
 	"github.com/bclicn/color"
 	"github.com/cybercyst/go-scaffold/internal/consts"
 	"github.com/cybercyst/go-scaffold/internal/utils"
-	"github.com/cybercyst/go-scaffold/pkg/cookiecutter"
+	"github.com/cybercyst/go-scaffold/pkg/scaffold"
 	"github.com/spf13/cobra"
 	"gopkg.in/yaml.v3"
 )
@@ -34,7 +34,7 @@ var rootCmd = &cobra.Command{
 		fmt.Println()
 		fmt.Println("Generating template", color.BBlue(uri))
 
-		metadata, err := cookiecutter.Generate(uri, &input, outputDirectory)
+		metadata, err := scaffold.Generate(uri, &input, outputDirectory)
 		if err != nil {
 			fmt.Fprint(os.Stderr, color.Red("[ERROR]"), " problem generating template: ", err)
 			os.Exit(1)

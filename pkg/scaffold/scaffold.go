@@ -1,4 +1,4 @@
-package cookiecutter
+package scaffold
 
 import (
 	g "github.com/cybercyst/go-scaffold/internal/generate"
