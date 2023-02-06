@@ -6,7 +6,9 @@ cmp output/my-project/my-project.txt expected_file
 
 -- input.yaml --
 project_name: my-project
--- test-template/schema.yaml --
+-- test-template/template.yaml --
+title: My Template
+version: v0.0.1-test
 type: object
 schema:
   project_name:
