@@ -65,7 +65,7 @@ func LoadSchema(schemaRaw interface{}) (*jsonschema.Schema, error) {
 }
 
 func ReadSchemaBytes(fs afero.Fs) ([]byte, error) {
-	schemaYamlBytes, err := afero.ReadFile(fs, "schema.yaml")
+	schemaYamlBytes, err := afero.ReadFile(fs, "template.yaml")
 	if err != nil {
 		return nil, err
 	}
