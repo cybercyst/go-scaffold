@@ -2,9 +2,9 @@ package schema
 
 import (
 	"testing"
-
-	"github.com/spf13/afero"
 )
+
+var templateFile = "template.yaml"
 
 func TestValidateSchemaShouldMergeSchemaEntries(t *testing.T) {
 	rawSchema := []interface{}{
@@ -51,18 +51,20 @@ func TestValidateSchemaShouldMergeSchemaEntries(t *testing.T) {
 }
 
 func TestValidateSchemaShouldThrowNoErrorWhenInputMatchesSchema(t *testing.T) {
-	fs := afero.NewMemMapFs()
-	afero.WriteFile(fs, "schema.yaml", []byte(`
-name: My Template
-type: object
-schema:
-  project_name:
-    type: string
-required:
-  - project_name
-`), 0644)
+	rawSchema := map[string]interface{}{
+		"required": []string{
+			"project_name",
+		},
+		"properties": map[string]interface{}{
+			"project_name": map[string]interface{}{
+				"title":       "Project Name",
+				"type":        "string",
+				"description": "Give your project a name to dazzle",
+			},
+		},
+	}
 
-	schema, err := LoadSchema(fs)
+	schema, err := LoadSchema(rawSchema)
 	if err != nil {
 		t.Fatalf("got unexpected error while parsing schema: %s", err)
 	}
@@ -78,18 +80,20 @@ required:
 }
 
 func TestValidateSchemaShouldThrowErrorWhenInputDoesntMatchSchema(t *testing.T) {
-	fs := afero.NewMemMapFs()
-	afero.WriteFile(fs, "schema.yaml", []byte(`
-name: My Template
-type: object
-schema:
-  project_name:
-    type: string
-required:
-  - project_name
-`), 0644)
+	rawSchema := map[string]interface{}{
+		"required": []string{
+			"project_name",
+		},
+		"properties": map[string]interface{}{
+			"project_name": map[string]interface{}{
+				"title":       "Project Name",
+				"type":        "string",
+				"description": "Give your project a name to dazzle",
+			},
+		},
+	}
 
-	schema, err := LoadSchema(fs)
+	schema, err := LoadSchema(rawSchema)
 	if err != nil {
 		t.Error("got unexpected error while parsing schema")
 	}
