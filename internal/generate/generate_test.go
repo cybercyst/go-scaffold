@@ -38,11 +38,15 @@ func TestGenerateJsonFilter(t *testing.T) {
 
 	// interface values are sorted alphabetically
 	want := `{
-  "arrayVal": ["one", "two", "banana"],
+  "arrayVal": [
+    "one",
+    "two",
+    "banana"
+  ],
   "boolVal": true,
   "numVal": 123,
   "objVal": {
-	"nestedVal": "hi there"
+    "nestedVal": "hi there"
   },
   "strVal": "a"
 }`

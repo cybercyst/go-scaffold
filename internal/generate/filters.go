@@ -2,7 +2,6 @@ package generate
 
 import (
 	"encoding/json"
-	"fmt"
 
 	"github.com/extemporalgenome/slug"
 	"github.com/flosch/pongo2/v6"
@@ -32,10 +31,7 @@ func filterYaml(in *pongo2.Value, param *pongo2.Value) (*pongo2.Value, *pongo2.E
 }
 
 func filterJson(in *pongo2.Value, param *pongo2.Value) (*pongo2.Value, *pongo2.Error) {
-	test := in.Interface()
-	fmt.Println(test)
-
-	jsonBytes, err := json.Marshal(in.Interface())
+	jsonBytes, err := json.MarshalIndent(in.Interface(), "", "  ")
 	if err != nil {
 		return nil, &pongo2.Error{
 			Sender:    "filter:json",
@@ -43,7 +39,5 @@ func filterJson(in *pongo2.Value, param *pongo2.Value) (*pongo2.Value, *pongo2.E
 		}
 	}
 
-	jsonStr := string(jsonBytes)
-
-	return pongo2.AsValue(jsonStr), nil
+	return pongo2.AsSafeValue(string(jsonBytes)), nil
 }
