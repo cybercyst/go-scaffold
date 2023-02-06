@@ -1,6 +1,8 @@
 package generate
 
 import (
+	"encoding/json"
+
 	"github.com/extemporalgenome/slug"
 	"github.com/flosch/pongo2/v6"
 	"gopkg.in/yaml.v3"
@@ -9,6 +11,7 @@ import (
 func initFilters() {
 	pongo2.RegisterFilter("slugify", filterSlugify)
 	pongo2.RegisterFilter("yaml", filterYaml)
+	pongo2.RegisterFilter("json", filterJson)
 }
 
 func filterSlugify(in *pongo2.Value, param *pongo2.Value) (*pongo2.Value, *pongo2.Error) {
@@ -25,4 +28,16 @@ func filterYaml(in *pongo2.Value, param *pongo2.Value) (*pongo2.Value, *pongo2.E
 	}
 
 	return pongo2.AsValue(string(yamlBytes)), nil
+}
+
+func filterJson(in *pongo2.Value, param *pongo2.Value) (*pongo2.Value, *pongo2.Error) {
+	jsonBytes, err := json.MarshalIndent(in.Interface(), "", "  ")
+	if err != nil {
+		return nil, &pongo2.Error{
+			Sender:    "filter:json",
+			OrigError: err,
+		}
+	}
+
+	return pongo2.AsSafeValue(string(jsonBytes)), nil
 }
