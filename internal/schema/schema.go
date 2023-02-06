@@ -7,7 +7,6 @@ import (
 
 	"github.com/imdario/mergo"
 	"github.com/qri-io/jsonschema"
-	"github.com/spf13/afero"
 )
 
 func ValidateInput(schema *jsonschema.Schema, input *map[string]interface{}) error {
@@ -62,13 +61,4 @@ func LoadSchema(schemaRaw interface{}) (*jsonschema.Schema, error) {
 	}
 
 	return rs, nil
-}
-
-func ReadSchemaBytes(fs afero.Fs) ([]byte, error) {
-	schemaYamlBytes, err := afero.ReadFile(fs, "template.yaml")
-	if err != nil {
-		return nil, err
-	}
-
-	return schemaYamlBytes, nil
 }
