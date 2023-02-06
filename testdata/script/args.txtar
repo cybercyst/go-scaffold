@@ -1,3 +1,5 @@
+env GOCOVERDIR=.
+
 # Test for missing template arg
 ! exec go-scaffold
 stderr 'Error: accepts 1 arg\(s\), received 0'

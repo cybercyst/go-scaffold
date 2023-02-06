@@ -1,3 +1,5 @@
+env GOCOVERDIR=.
+
 # Happy path test
 exec go-scaffold test-template --input-file input.yaml --output-directory output
 ! stderr .
