@@ -11,11 +11,11 @@ import (
 )
 
 type Template struct {
-	Uri       string
-	LocalPath string
-	Version   string
-	Config    *TemplateConfig
-	Schema    *jsonschema.Schema
+	Uri       string             `json:"uri" yaml:"uri"`
+	LocalPath string             `json:"localPath" yaml:"localPath"`
+	Version   string             `json:"version" yaml:"version"`
+	Config    *TemplateConfig    `json:"config" yaml:"config"`
+	Schema    *jsonschema.Schema `json:"schema" yaml:"schema"`
 }
 
 func NewTemplate(uri string) (*Template, error) {
