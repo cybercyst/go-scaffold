@@ -37,6 +37,7 @@ require (
 )
 
 require (
+	github.com/barkimedes/go-deepcopy v0.0.0-20220514131651-17c30cfc62df
 	github.com/bclicn/color v0.0.0-20180711051946-108f2023dc84
 	github.com/extemporalgenome/slug v0.0.0-20150414033109-0320c85e32e0
 	github.com/flosch/pongo2/v6 v6.0.0

@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 
+	"github.com/barkimedes/go-deepcopy"
 	"github.com/imdario/mergo"
 	"github.com/qri-io/jsonschema"
 )
@@ -33,8 +34,13 @@ func ValidateInput(schema *jsonschema.Schema, input *map[string]interface{}) err
 	return nil
 }
 
-func LoadSchema(schemaRaw interface{}) (*jsonschema.Schema, error) {
-	var schema map[string]interface{} = make(map[string]interface{})
+func LoadSchema(schemaOrig interface{}) (*jsonschema.Schema, error) {
+	var schema map[string]interface{}
+
+	schemaRaw, err := deepcopy.Anything(schemaOrig)
+	if err != nil {
+		return nil, err
+	}
 
 	switch schemaRaw := schemaRaw.(type) {
 	case []interface{}:
