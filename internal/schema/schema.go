@@ -34,7 +34,7 @@ func ValidateInput(schema *jsonschema.Schema, input *map[string]interface{}) err
 }
 
 func LoadSchema(schemaRaw interface{}) (*jsonschema.Schema, error) {
-	var schema map[string]interface{}
+	var schema map[string]interface{} = make(map[string]interface{})
 
 	switch schemaRaw := schemaRaw.(type) {
 	case []interface{}:
