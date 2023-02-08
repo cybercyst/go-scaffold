@@ -7,6 +7,7 @@ import (
 )
 
 type Template = t.Template
+type GeneratedMetadata = g.GeneratedMetadata
 
 func Download(templateUri string) (*Template, error) {
 	template, err := t.NewTemplate(templateUri)

@@ -11,11 +11,8 @@
             "mode": "auto",
             "program": "main.go",
             "args": [
-                "/home/forrest/workspace/oci-golden-paths/docker-compose",
-                "-i",
-                "input.yaml",
-                "-o",
-                "test"
+                "schema",
+                "oci://docker.io/forrestloomis786/nodejs-express-api:0.0.1"
             ]
         }
     ]
