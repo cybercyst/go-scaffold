@@ -24,3 +24,8 @@ tasks:
   clean:
     cmds:
       - go clean
+
+  validate:
+    cmds:
+      - go run . -i testdata/input.json -o testoutput testdata/template
+      - tree testoutput

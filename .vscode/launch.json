@@ -14,6 +14,20 @@
                 "schema",
                 "oci://docker.io/forrestloomis786/nodejs-express-api:0.0.1"
             ]
+        },
+        {
+            "name": "Test Generate",
+            "type": "go",
+            "request": "launch",
+            "mode": "auto",
+            "program": "main.go",
+            "args": [
+                "-i",
+                "testdata/input.json",
+                "-o",
+                "testoutput",
+                "testdata/template"
+            ]
         }
     ]
 }
