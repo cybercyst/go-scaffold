@@ -27,7 +27,7 @@ func Generate(template *Template, templateInput *map[string]interface{}, outputP
 		return nil, err
 	}
 
-	createdFiles, err := template.Execute(templateInput, outputPath)
+	createdFiles, err := template.ExecuteSteps(templateInput, outputPath)
 	if err != nil {
 		return nil, err
 	}

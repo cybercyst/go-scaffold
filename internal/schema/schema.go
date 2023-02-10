@@ -52,7 +52,8 @@ func LoadSchema(schemaOrig interface{}) (*jsonschema.Schema, error) {
 	case map[string]interface{}:
 		schema = schemaRaw
 	default:
-		return nil, fmt.Errorf("got unexpected value from schema.yaml")
+		// If we can't detect the schema, we don't have one
+		return nil, nil
 	}
 
 	schemaBytes, err := json.Marshal(schema)

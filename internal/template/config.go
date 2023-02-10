@@ -15,16 +15,17 @@ type TemplateConfig struct {
 	Tags        []string    `json:"tags" yaml:"tags"`
 	Icon        string      `json:"icon" yaml:"icon"`
 	RawSchema   interface{} `json:"schema" yaml:"schema"`
+	Steps       []Step      `json:"steps" yaml:"steps"`
 }
 
-type ConfigType int8
+type FileType int8
 
 const (
-	JSON ConfigType = iota
+	JSON FileType = iota
 	YAML
 )
 
-func readConfigFile(fs afero.Fs, fname string, configType ConfigType) (*TemplateConfig, error) {
+func readConfigFile(fs afero.Fs, fname string, fileType FileType) (*TemplateConfig, error) {
 	var config TemplateConfig
 
 	bytes, err := afero.ReadFile(fs, fname)
@@ -32,7 +33,7 @@ func readConfigFile(fs afero.Fs, fname string, configType ConfigType) (*Template
 		return nil, err
 	}
 
-	switch configType {
+	switch fileType {
 	case JSON:
 		err = json.Unmarshal(bytes, &config)
 		if err != nil {
