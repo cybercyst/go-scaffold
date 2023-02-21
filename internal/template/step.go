@@ -26,7 +26,7 @@ func loadSteps(templateFs afero.Fs, config *TemplateConfig) ([]Step, []error) {
 	allErrors := []error{}
 
 	if config.Steps != nil {
-		for idx, step := range validSteps {
+		for idx, step := range config.Steps {
 			if step.Id == "" {
 				step.Id = fmt.Sprintf("Step %d", idx)
 			}
@@ -40,11 +40,7 @@ func loadSteps(templateFs afero.Fs, config *TemplateConfig) ([]Step, []error) {
 		}
 	}
 
-	stepsDirExists, err := afero.IsDir(templateFs, "steps")
-	if err != nil {
-		allErrors = append(allErrors, err)
-	}
-
+	stepsDirExists, _ := afero.IsDir(templateFs, "steps")
 	if !stepsDirExists {
 		return validSteps, allErrors
 	}
