@@ -1,7 +1,7 @@
 package template
 
 import (
-	"path/filepath"
+	"errors"
 
 	"github.com/cybercyst/go-scaffold/internal/download"
 	"github.com/cybercyst/go-scaffold/internal/generate"
@@ -39,6 +39,8 @@ func NewTemplate(uri string) (*Template, error) {
 	steps, stepErrors := loadSteps(templateFs, config)
 	// TODO: Treat errors as warnings here?
 	if len(stepErrors) > 0 {
+		err := errors.New("error loading steps")
+		err = errors.Join(stepErrors...)
 		return nil, err
 	}
 
@@ -65,15 +67,79 @@ func (t *Template) ValidateInput(input *map[string]interface{}) error {
 	return nil
 }
 
-func (t *Template) ExecuteSteps(input *map[string]interface{}, outputPath string) ([]string, error) {
-	templateFilesDir := filepath.Join(t.LocalPath, "template")
-	templateFs := afero.NewBasePathFs(afero.NewOsFs(), templateFilesDir)
+func (t *Template) ExecuteSteps(input *map[string]interface{}, outputPath string) ([]string, []error) {
+	allCreatedFiles := []string{}
+	allErrors := []error{}
+
+	templateFs := afero.NewBasePathFs(afero.NewOsFs(), t.LocalPath)
 	outputFs := afero.NewBasePathFs(afero.NewOsFs(), outputPath)
 
-	createdFiles, err := generate.GenerateTemplateFiles(templateFs, outputFs, input)
+	for _, step := range t.Steps {
+		var createdFiles []string
+		var err error
+
+		// do the step
+		switch step.Action {
+		case "template":
+			sourceFs := afero.NewBasePathFs(templateFs, step.Source)
+			isDir, _ := afero.IsDir(sourceFs, ".")
+
+			var targetFs afero.Fs
+			if step.Target == "." {
+				targetFs = outputFs
+			} else {
+				targetFs = afero.NewBasePathFs(outputFs, step.Target)
+			}
+
+			if isDir {
+				createdFiles, err = t.executeLocalTemplateStep(input, sourceFs, targetFs)
+			} else {
+				createdFiles, err = t.executeRemoteTemplateStep(input, step.Source, targetFs)
+			}
+		default:
+			// action is now a docker image and we want to run it
+		}
+
+		if err != nil {
+			allErrors = append(allErrors, err)
+			continue
+		}
+		allCreatedFiles = append(allCreatedFiles, createdFiles...)
+	}
+
+	return allCreatedFiles, nil
+}
+
+func (t *Template) executeRemoteTemplateStep(input *map[string]interface{}, uri string, targetFs afero.Fs) ([]string, error) {
+	nextTemplate, err := NewTemplate(uri)
 	if err != nil {
-		return []string{}, err
+		return nil, err
+	}
+
+	if err := nextTemplate.ValidateInput(input); err != nil {
+		return nil, err
+	}
+
+	info, err := targetFs.Stat(".")
+	if err != nil {
+		return nil, err
+	}
+	createdFiles, stepErrors := nextTemplate.ExecuteSteps(input, info.Name())
+	if len(stepErrors) > 0 {
+		err := errors.New("problem running steps")
+		err = errors.Join(stepErrors...)
+		return createdFiles, err
 	}
 
 	return createdFiles, nil
+}
+
+func (t *Template) executeLocalTemplateStep(input *map[string]interface{}, sourceFs afero.Fs, targetFs afero.Fs) ([]string, error) {
+	return generate.GenerateTemplateFiles(sourceFs, targetFs, input)
+}
+
+func (t *Template) executeActionStep(input *map[string]interface{}, outputPath string) ([]string, error) {
+	// execute action step
+
+	return nil, nil
 }

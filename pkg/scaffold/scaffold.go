@@ -1,6 +1,8 @@
 package scaffold
 
 import (
+	"errors"
+
 	g "github.com/cybercyst/go-scaffold/internal/generate"
 	t "github.com/cybercyst/go-scaffold/internal/template"
 	"github.com/cybercyst/go-scaffold/internal/utils"
@@ -27,8 +29,10 @@ func Generate(template *Template, templateInput *map[string]interface{}, outputP
 		return nil, err
 	}
 
-	createdFiles, err := template.ExecuteSteps(templateInput, outputPath)
-	if err != nil {
+	createdFiles, stepErrors := template.ExecuteSteps(templateInput, outputPath)
+	if len(stepErrors) > 0 {
+		err := errors.New("problem running steps")
+		err = errors.Join(stepErrors...)
 		return nil, err
 	}
 
