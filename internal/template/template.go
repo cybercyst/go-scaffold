@@ -1,11 +1,17 @@
 package template
 
 import (
+	"context"
 	"errors"
+	"io"
+	"os"
 
 	"github.com/cybercyst/go-scaffold/internal/download"
 	"github.com/cybercyst/go-scaffold/internal/generate"
 	"github.com/cybercyst/go-scaffold/internal/schema"
+	"github.com/docker/docker/api/types"
+	"github.com/docker/docker/api/types/container"
+	"github.com/docker/docker/client"
 	"github.com/qri-io/jsonschema"
 	"github.com/spf13/afero"
 )
@@ -78,18 +84,17 @@ func (t *Template) ExecuteSteps(input *map[string]interface{}, outputPath string
 		var createdFiles []string
 		var err error
 
-		// do the step
+		var targetFs afero.Fs
+		if step.Target == "." {
+			targetFs = outputFs
+		} else {
+			targetFs = afero.NewBasePathFs(outputFs, step.Target)
+		}
+
 		switch step.Action {
 		case "template":
 			sourceFs := afero.NewBasePathFs(templateFs, step.Source)
 			isDir, _ := afero.IsDir(sourceFs, ".")
-
-			var targetFs afero.Fs
-			if step.Target == "." {
-				targetFs = outputFs
-			} else {
-				targetFs = afero.NewBasePathFs(outputFs, step.Target)
-			}
 
 			if isDir {
 				createdFiles, err = t.executeLocalTemplateStep(input, sourceFs, targetFs)
@@ -97,7 +102,7 @@ func (t *Template) ExecuteSteps(input *map[string]interface{}, outputPath string
 				createdFiles, err = t.executeRemoteTemplateStep(input, step.Source, targetFs)
 			}
 		default:
-			// action is now a docker image and we want to run it
+			createdFiles, err = t.executeActionStep(step, targetFs)
 		}
 
 		if err != nil {
@@ -138,8 +143,32 @@ func (t *Template) executeLocalTemplateStep(input *map[string]interface{}, sourc
 	return generate.GenerateTemplateFiles(sourceFs, targetFs, input)
 }
 
-func (t *Template) executeActionStep(input *map[string]interface{}, outputPath string) ([]string, error) {
-	// execute action step
+func (t *Template) executeActionStep(step Step, targetFs afero.Fs) ([]string, error) {
+	ctx := context.Background()
+	cli, err := client.NewClientWithOpts(client.FromEnv, client.WithAPIVersionNegotiation())
+	if err != nil {
+		return nil, err
+	}
+
+	reader, err := cli.ImagePull(ctx, step.Action, types.ImagePullOptions{})
+	if err != nil {
+		return nil, err
+	}
+	defer reader.Close()
+	io.Copy(os.Stdout, reader)
+
+	resp, err := cli.ContainerCreate(ctx, &container.Config{
+		Image: step.Action,
+		Tty:   false,
+		Cmd:   step.Command,
+	}, nil, nil, nil, "")
+	if err != nil {
+		return nil, err
+	}
+
+	if err := cli.ContainerStart(ctx, resp.ID, types.ContainerStartOptions{}); err != nil {
+		return nil, err
+	}
 
 	return nil, nil
 }

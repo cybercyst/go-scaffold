@@ -16,7 +16,7 @@ type Step struct {
 	Description string                 `json:"description" yaml:"description"`
 	Action      string                 `json:"action" yaml:"action"`
 	Target      string                 `json:"target" yaml:"target"`
-	Entrypoint  string                 `json:"entrypoint" yaml:"entrypoint"`
+	Command     []string               `json:"command" yaml:"command"`
 	Source      string                 `json:"source" yaml:"source"`
 	Inputs      map[string]interface{} `json:"inputs" yaml:"inputs"`
 }
