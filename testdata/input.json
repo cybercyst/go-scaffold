@@ -1,3 +1,8 @@
 {
-    "test": "Test Value"
+    "test": "Test Value",
+    "project_name": "My Project",
+    "image_registry": "docker.io",
+    "image_repository": "my-project",
+    "image_tag": "0.0.1",
+    "image_port": 4000
 }

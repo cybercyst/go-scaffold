@@ -1,0 +1,5 @@
+action: node:19-alpine3.16
+command:
+  - sh
+  - -c
+  - "npx -y @angular/cli new --directory client --interactive false --skip-git --skip-install anuglar-app"

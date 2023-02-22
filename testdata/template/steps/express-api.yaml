@@ -1,0 +1,3 @@
+source: oci://docker.io/forrestloomis786/nodejs-express-api:0.0.1
+input:
+  project_name: "My Express API"
