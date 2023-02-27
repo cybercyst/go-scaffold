@@ -3,7 +3,7 @@ package schema
 import (
 	"context"
 	"encoding/json"
-	"fmt"
+	"errors"
 
 	"github.com/barkimedes/go-deepcopy"
 	"github.com/imdario/mergo"
@@ -11,6 +11,11 @@ import (
 )
 
 func ValidateInput(schema *jsonschema.Schema, input *map[string]interface{}) error {
+	// no schema defined, we accept any input
+	if schema == nil {
+		return nil
+	}
+
 	ctx := context.Background()
 
 	userInputBytes, err := json.Marshal(input)
@@ -24,11 +29,11 @@ func ValidateInput(schema *jsonschema.Schema, input *map[string]interface{}) err
 	}
 
 	if len(validationErrors) > 0 {
-		fmt.Println("The following validation errors were discovered while attempting to generate this template:")
+		err := errors.New("invalid user input provided")
 		for _, validationError := range validationErrors {
-			fmt.Println(validationError.Error())
+			err = errors.Join(err, errors.New(validationError.Message))
 		}
-		return fmt.Errorf("the provided user input did not pass this template's schema")
+		return err
 	}
 
 	return nil
@@ -44,10 +49,8 @@ func LoadSchema(schemaOrig interface{}) (*jsonschema.Schema, error) {
 
 	switch schemaRaw := schemaRaw.(type) {
 	case []interface{}:
-		for _, schemaSection := range schemaRaw {
-			if err := mergo.Merge(&schema, schemaSection, mergo.WithAppendSlice); err != nil {
-				return nil, err
-			}
+		if err := Merge(&schema, schemaRaw); err != nil {
+			return nil, err
 		}
 	case map[string]interface{}:
 		schema = schemaRaw
@@ -68,4 +71,14 @@ func LoadSchema(schemaOrig interface{}) (*jsonschema.Schema, error) {
 	}
 
 	return rs, nil
+}
+
+func Merge(dst *map[string]interface{}, schemas []interface{}) error {
+	for _, schema := range schemas {
+		if err := mergo.Merge(dst, schema, mergo.WithAppendSlice); err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
