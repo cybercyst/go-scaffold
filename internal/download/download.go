@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/go-git/go-git/v5"
+	"github.com/spf13/afero"
 	"oras.land/oras-go/v2"
 	"oras.land/oras-go/v2/content/file"
 	"oras.land/oras-go/v2/registry/remote"
@@ -19,14 +20,14 @@ type DownloadInfo struct {
 	Version   string
 }
 
-func Download(uri string) (*DownloadInfo, error) {
+func Download(fs afero.Fs, uri string) (*DownloadInfo, error) {
 	switch {
 	case isOciArtifactUri(uri):
 		return downloadOci(uri)
 	case isGitRepo(uri):
 		return downloadGit(uri)
 	default:
-		return useDirectory(uri)
+		return useDirectory(fs, uri)
 	}
 }
 
@@ -97,8 +98,8 @@ func isDirectory(uri string) bool {
 	return info.IsDir()
 }
 
-func useDirectory(filePath string) (*DownloadInfo, error) {
-	if _, err := os.ReadDir(filePath); err != nil {
+func useDirectory(fs afero.Fs, filePath string) (*DownloadInfo, error) {
+	if _, err := afero.ReadDir(fs, filePath); err != nil {
 		return nil, err
 	}
 
@@ -107,6 +108,6 @@ func useDirectory(filePath string) (*DownloadInfo, error) {
 
 	return &DownloadInfo{
 		LocalPath: filePath,
-		Version:   "HEAD",
+		Version:   "LOCAL",
 	}, nil
 }

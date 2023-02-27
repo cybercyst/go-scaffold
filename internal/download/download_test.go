@@ -2,6 +2,9 @@ package download
 
 import (
 	"testing"
+
+	"github.com/spf13/afero"
+	"gotest.tools/v3/assert"
 )
 
 func testGitUrl(url string, t *testing.T) {
@@ -24,26 +27,19 @@ func TestDetectIsGitRepositoryShouldDetectValidRepositories(t *testing.T) {
 
 func TestDetectIsOciArtifactUriShouldDetectValidUri(t *testing.T) {
 	got := isOciArtifactUri("oci://registry.url/repo/artifact:tag")
-	if got != true {
-		t.Error("oci://registry.url/repo/artifact:tag was not detected as a valid OCI artifact uri")
-	}
+	assert.Equal(t, got, true, "oci://registry.url/repo/artifact:tag was not detected as a valid OCI artifact uri")
 }
 
 func TestDectectIsDirectoryShouldDetectValidDirectory(t *testing.T) {
 	got := isDirectory(".")
-	if got != true {
-		t.Error("current test directory was not detected as a valid directory")
-	}
+	assert.Equal(t, got, true, "current test directory was not detected as a valid directory")
 
 	got = isDirectory("i-dont-exist")
-	if got == true {
-		t.Error("non existant directory was detected as a valid directory")
-	}
+	assert.Equal(t, got, false, "non existant directory was detected as a valid directory")
 }
 
 func TestDetectErrorWhenNoValidUriPassed(t *testing.T) {
-	_, got := Download("this-isn't-a-valid-uri-or-folder")
-	if got == nil {
-		t.Error("invalid uri did not cause an error")
-	}
+	fs := afero.NewMemMapFs()
+	_, got := Download(fs, "this-isn't-a-valid-uri-or-folder")
+	assert.Error(t, got, "open this-isn't-a-valid-uri-or-folder: file does not exist")
 }
