@@ -5,8 +5,10 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strings"
 
 	"github.com/cybercyst/go-scaffold/internal/consts"
+	"github.com/spf13/afero"
 	"gopkg.in/yaml.v3"
 )
 
@@ -25,14 +27,14 @@ func ReadTemplateInput(inputFilePath string) (map[string]interface{}, error) {
 	return inputJson, nil
 }
 
-func EnsurePathExists(path string) error {
-	info, err := os.Stat(path)
+func EnsurePathExists(fs afero.Fs, path string) error {
+	info, err := fs.Stat(path)
 	if errors.Is(err, os.ErrNotExist) {
-		err = os.MkdirAll(path, 0755)
+		err = fs.MkdirAll(path, 0755)
 		if err != nil {
 			return err
 		}
-		return EnsurePathExists(path)
+		return EnsurePathExists(fs, path)
 	}
 
 	if !info.IsDir() {
@@ -49,4 +51,15 @@ func CreateTempDir() string {
 	}
 
 	return path
+}
+
+func CreateTestFs(fsys map[string]string) afero.Fs {
+	fs := afero.NewMemMapFs()
+
+	for path, contents := range fsys {
+		fs.MkdirAll(path, 0755)
+		afero.WriteFile(fs, path, []byte(strings.TrimSpace(contents)), 0644)
+	}
+
+	return fs
 }

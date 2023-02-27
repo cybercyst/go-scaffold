@@ -1,49 +1,68 @@
 package template
 
 import (
-	"context"
 	"errors"
-	"io"
-	"os"
+	"fmt"
 
 	"github.com/cybercyst/go-scaffold/internal/download"
-	"github.com/cybercyst/go-scaffold/internal/generate"
 	"github.com/cybercyst/go-scaffold/internal/schema"
-	"github.com/docker/docker/api/types"
-	"github.com/docker/docker/api/types/container"
-	"github.com/docker/docker/client"
 	"github.com/qri-io/jsonschema"
 	"github.com/spf13/afero"
 )
 
-type Template struct {
-	Uri       string             `json:"uri" yaml:"uri"`
-	LocalPath string             `json:"localPath" yaml:"localPath"`
-	Version   string             `json:"version" yaml:"version"`
-	Config    *TemplateConfig    `json:"config" yaml:"config"`
-	Schema    *jsonschema.Schema `json:"schema" yaml:"schema"`
-	Steps     []Step             `json:"steps" yaml:"steps"`
+type MetaTemplate struct {
+	Templates []*Template
+	Schema    *jsonschema.Schema
+	Input     map[string]interface{}
 }
 
-func NewTemplate(uri string) (*Template, error) {
-	downloadInfo, err := download.Download(uri)
+type Template struct {
+	Uri       string          `json:"uri" yaml:"uri"`
+	LocalPath string          `json:"localPath" yaml:"localPath"`
+	Version   string          `json:"version" yaml:"version"`
+	Config    *TemplateConfig `json:"config" yaml:"config"`
+	Steps     []Step          `json:"steps" yaml:"steps"`
+}
+
+func NewTemplate(fs afero.Fs, uri string) (*MetaTemplate, error) {
+	template, err := downloadTemplate(fs, uri)
 	if err != nil {
 		return nil, err
 	}
 
-	templateFs := afero.NewBasePathFs(afero.NewOsFs(), downloadInfo.LocalPath)
+	deps := []*Template{
+		template,
+	}
+	err = template.fetchDependencies(fs, &deps)
+	if err != nil {
+		return nil, err
+	}
+
+	schema, err := schema.LoadSchema(template.Config.RawSchema)
+
+	return &MetaTemplate{
+		Templates: deps,
+		Schema:    schema,
+	}, nil
+}
+
+func downloadTemplate(fs afero.Fs, uri string) (*Template, error) {
+	downloadInfo, err := download.Download(fs, uri)
+	if err != nil {
+		return nil, err
+	}
+
+	templateFs := afero.NewBasePathFs(fs, downloadInfo.LocalPath)
 	config, err := LoadConfig(templateFs)
 	if err != nil {
 		return nil, err
 	}
 
-	schema, err := schema.LoadSchema(config.RawSchema)
-	if err != nil {
+	if _, err = schema.LoadSchema(config.RawSchema); err != nil {
 		return nil, err
 	}
 
-	steps, stepErrors := loadSteps(templateFs, config)
-	// TODO: Treat errors as warnings here?
+	steps, stepErrors := mergeStepsFromConfigAndTemplateFilesystem(templateFs, config)
 	if len(stepErrors) > 0 {
 		err := errors.New("error loading steps")
 		err = errors.Join(stepErrors...)
@@ -55,120 +74,67 @@ func NewTemplate(uri string) (*Template, error) {
 		LocalPath: downloadInfo.LocalPath,
 		Version:   downloadInfo.Version,
 		Config:    config,
-		Schema:    schema,
 		Steps:     steps,
 	}, nil
 }
 
-func (t *Template) ValidateInput(input *map[string]interface{}) error {
-	if t.Schema == nil {
-		// We have no schema defined, so we're assuming everything is A-OK
+func (t *Template) fetchDependencies(fs afero.Fs, deps *[]*Template) error {
+	remoteDependencies := []*Step{}
+	for _, step := range t.Steps {
+		templateFs := afero.NewBasePathFs(fs, t.LocalPath)
+		if isDependency(step, templateFs) {
+			if err := checkCircularDependency(*deps, step); err != nil {
+				return err
+			}
+
+			remoteDependencies = append(remoteDependencies, &step)
+		}
+	}
+
+	if len(remoteDependencies) == 0 {
 		return nil
 	}
 
-	if err := schema.ValidateInput(t.Schema, input); err != nil {
-		return err
+	for _, step := range remoteDependencies {
+		template, err := downloadTemplate(fs, step.Source)
+		if err != nil {
+			return err
+		}
+
+		*deps = append(*deps, template)
+
+		if err := template.fetchDependencies(fs, deps); err != nil {
+			return err
+		}
 	}
 
 	return nil
 }
 
-func (t *Template) ExecuteSteps(input *map[string]interface{}, outputPath string) ([]string, []error) {
-	allCreatedFiles := []string{}
-	allErrors := []error{}
+func isDependency(step Step, templateFs afero.Fs) bool {
+	// A template step that is not a directory within the
+	// template's filesystem is a remote dependency and
+	// needs to be fetched
 
-	templateFs := afero.NewBasePathFs(afero.NewOsFs(), t.LocalPath)
-	outputFs := afero.NewBasePathFs(afero.NewOsFs(), outputPath)
-
-	for _, step := range t.Steps {
-		var createdFiles []string
-		var err error
-
-		var targetFs afero.Fs
-		if step.Target == "." {
-			targetFs = outputFs
-		} else {
-			targetFs = afero.NewBasePathFs(outputFs, step.Target)
-		}
-
-		switch step.Action {
-		case "template":
-			sourceFs := afero.NewBasePathFs(templateFs, step.Source)
-			isDir, _ := afero.IsDir(sourceFs, ".")
-
-			if isDir {
-				createdFiles, err = t.executeLocalTemplateStep(input, sourceFs, targetFs)
-			} else {
-				createdFiles, err = t.executeRemoteTemplateStep(input, step.Source, targetFs)
-			}
-		default:
-			createdFiles, err = t.executeActionStep(step, targetFs)
-		}
-
-		if err != nil {
-			allErrors = append(allErrors, err)
-			continue
-		}
-		allCreatedFiles = append(allCreatedFiles, createdFiles...)
+	if step.Action != "template" {
+		return false
 	}
 
-	return allCreatedFiles, nil
+	isDir, _ := afero.DirExists(templateFs, step.Source)
+
+	return !isDir
 }
 
-func (t *Template) executeRemoteTemplateStep(input *map[string]interface{}, uri string, targetFs afero.Fs) ([]string, error) {
-	nextTemplate, err := NewTemplate(uri)
-	if err != nil {
-		return nil, err
+func checkCircularDependency(templates []*Template, step Step) error {
+	for _, t := range templates {
+		if t.Uri == step.Source {
+			return errors.New(fmt.Sprintf("using template at %s would cause a circular dependency", step.Source))
+		}
 	}
 
-	if err := nextTemplate.ValidateInput(input); err != nil {
-		return nil, err
-	}
-
-	info, err := targetFs.Stat(".")
-	if err != nil {
-		return nil, err
-	}
-	createdFiles, stepErrors := nextTemplate.ExecuteSteps(input, info.Name())
-	if len(stepErrors) > 0 {
-		err := errors.New("problem running steps")
-		err = errors.Join(stepErrors...)
-		return createdFiles, err
-	}
-
-	return createdFiles, nil
+	return nil
 }
 
-func (t *Template) executeLocalTemplateStep(input *map[string]interface{}, sourceFs afero.Fs, targetFs afero.Fs) ([]string, error) {
-	return generate.GenerateTemplateFiles(sourceFs, targetFs, input)
-}
-
-func (t *Template) executeActionStep(step Step, targetFs afero.Fs) ([]string, error) {
-	ctx := context.Background()
-	cli, err := client.NewClientWithOpts(client.FromEnv, client.WithAPIVersionNegotiation())
-	if err != nil {
-		return nil, err
-	}
-
-	reader, err := cli.ImagePull(ctx, step.Action, types.ImagePullOptions{})
-	if err != nil {
-		return nil, err
-	}
-	defer reader.Close()
-	io.Copy(os.Stdout, reader)
-
-	resp, err := cli.ContainerCreate(ctx, &container.Config{
-		Image: step.Action,
-		Tty:   false,
-		Cmd:   step.Command,
-	}, nil, nil, nil, "")
-	if err != nil {
-		return nil, err
-	}
-
-	if err := cli.ContainerStart(ctx, resp.ID, types.ContainerStartOptions{}); err != nil {
-		return nil, err
-	}
-
-	return nil, nil
+func (t *MetaTemplate) ValidateInput(input *map[string]interface{}) error {
+	return schema.ValidateInput(t.Schema, input)
 }

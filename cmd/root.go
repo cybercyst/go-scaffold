@@ -37,6 +37,7 @@ var rootCmd = &cobra.Command{
 		template, err := scaffold.Download(uri)
 		if err != nil {
 			fmt.Fprint(os.Stderr, color.Red("[ERROR]"), " problem preparing template: ", err)
+			os.Exit(1)
 		}
 
 		metadata, err := scaffold.Generate(template, &input, outputDirectory)

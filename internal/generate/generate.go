@@ -8,9 +8,13 @@ import (
 	"github.com/spf13/afero"
 )
 
+type TemplateMetadata struct {
+	Uri     string `json:"uri" yaml:"uri"`
+	Version string `json:"version" yaml:"version"`
+}
+
 type GeneratedMetadata struct {
-	Uri          string                  `json:"uri" yaml:"uri"`
-	Version      string                  `json:"version" yaml:"version"`
+	Templates    *[]TemplateMetadata     `json:"templates" yaml:"templates"`
 	Input        *map[string]interface{} `json:"input" yaml:"input"`
 	CreatedFiles *[]string               `json:"-" yaml:"-"`
 }

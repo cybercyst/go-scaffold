@@ -1,12 +1,19 @@
 package template
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
+	"os"
 	"path/filepath"
 	"strings"
 
+	"github.com/cybercyst/go-scaffold/internal/generate"
+	"github.com/docker/docker/api/types"
+	"github.com/docker/docker/api/types/container"
+	"github.com/docker/docker/client"
 	"github.com/spf13/afero"
 	"gopkg.in/yaml.v3"
 )
@@ -21,7 +28,7 @@ type Step struct {
 	Inputs      map[string]interface{} `json:"inputs" yaml:"inputs"`
 }
 
-func loadSteps(templateFs afero.Fs, config *TemplateConfig) ([]Step, []error) {
+func mergeStepsFromConfigAndTemplateFilesystem(templateFs afero.Fs, config *TemplateConfig) ([]Step, []error) {
 	validSteps := []Step{}
 	allErrors := []error{}
 
@@ -148,6 +155,74 @@ func validateStep(step Step) error {
 		if step.Source == "" {
 			return errors.New(fmt.Sprintf("required field source not set on step ID %s", step.Id))
 		}
+	}
+
+	return nil
+}
+
+func (t *Template) ExecuteSteps(input *map[string]interface{}, fs afero.Fs, outputFs afero.Fs) ([]string, []error) {
+	createdFiles := []string{}
+	errs := []error{}
+	for _, step := range t.Steps {
+		templateFs := afero.NewBasePathFs(fs, t.LocalPath)
+		if isDependency(step, templateFs) {
+			continue
+		}
+
+		switch step.Action {
+		case "template":
+			newFiles, err := t.executeTemplateStep(step, templateFs, outputFs, input)
+			if err != nil {
+				errs = append(errs, err)
+			}
+			createdFiles = append(createdFiles, newFiles...)
+		default:
+			err := t.executeActionStep(step, templateFs)
+			if err != nil {
+				errs = append(errs, err)
+			}
+		}
+	}
+
+	return createdFiles, errs
+}
+
+func (t *Template) executeTemplateStep(step Step, templateFs afero.Fs, outputFs afero.Fs, input *map[string]interface{}) ([]string, error) {
+	sourceFs := afero.NewBasePathFs(templateFs, step.Source)
+	var targetFs afero.Fs
+	if step.Target != "." {
+		targetFs = afero.NewBasePathFs(outputFs, step.Target)
+	} else {
+		targetFs = outputFs
+	}
+	return generate.GenerateTemplateFiles(sourceFs, targetFs, input)
+}
+
+func (t *Template) executeActionStep(step Step, targetFs afero.Fs) error {
+	ctx := context.Background()
+	cli, err := client.NewClientWithOpts(client.FromEnv, client.WithAPIVersionNegotiation())
+	if err != nil {
+		return err
+	}
+
+	reader, err := cli.ImagePull(ctx, step.Action, types.ImagePullOptions{})
+	if err != nil {
+		return err
+	}
+	defer reader.Close()
+	io.Copy(os.Stdout, reader)
+
+	resp, err := cli.ContainerCreate(ctx, &container.Config{
+		Image: step.Action,
+		Tty:   false,
+		Cmd:   step.Command,
+	}, nil, nil, nil, "")
+	if err != nil {
+		return err
+	}
+
+	if err := cli.ContainerStart(ctx, resp.ID, types.ContainerStartOptions{}); err != nil {
+		return err
 	}
 
 	return nil

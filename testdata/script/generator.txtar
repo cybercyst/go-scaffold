@@ -17,6 +17,8 @@ schema:
     type: string
 required:
   - project_name
+steps:
+  - source: ./template
 -- test-template/template/{{ project_name }}/{{ project_name }}.txt --
 {{ project_name }}
 -- expected_file --

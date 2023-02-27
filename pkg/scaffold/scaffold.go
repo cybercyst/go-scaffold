@@ -6,13 +6,15 @@ import (
 	g "github.com/cybercyst/go-scaffold/internal/generate"
 	t "github.com/cybercyst/go-scaffold/internal/template"
 	"github.com/cybercyst/go-scaffold/internal/utils"
+	"github.com/spf13/afero"
 )
 
-type Template = t.Template
+type Template = t.MetaTemplate
 type GeneratedMetadata = g.GeneratedMetadata
 
 func Download(templateUri string) (*Template, error) {
-	template, err := t.NewTemplate(templateUri)
+	fs := afero.NewOsFs()
+	template, err := t.NewTemplate(fs, templateUri)
 	if err != nil {
 		return nil, err
 	}
@@ -20,26 +22,37 @@ func Download(templateUri string) (*Template, error) {
 	return template, nil
 }
 
-func Generate(template *Template, templateInput *map[string]interface{}, outputPath string) (*g.GeneratedMetadata, error) {
-	if err := utils.EnsurePathExists(outputPath); err != nil {
+func Generate(meta *Template, input *map[string]interface{}, outputPath string) (*g.GeneratedMetadata, error) {
+	fs := afero.NewOsFs()
+	if err := utils.EnsurePathExists(fs, outputPath); err != nil {
+		return nil, err
+	}
+	outputFs := afero.NewBasePathFs(fs, outputPath)
+
+	if err := meta.ValidateInput(input); err != nil {
 		return nil, err
 	}
 
-	if err := template.ValidateInput(templateInput); err != nil {
-		return nil, err
-	}
+	createdFiles := []string{}
+	templateMetadata := []g.TemplateMetadata{}
 
-	createdFiles, stepErrors := template.ExecuteSteps(templateInput, outputPath)
-	if len(stepErrors) > 0 {
-		err := errors.New("problem running steps")
-		err = errors.Join(stepErrors...)
-		return nil, err
+	for _, template := range meta.Templates {
+		stepCreatedFiles, stepErrors := template.ExecuteSteps(input, fs, outputFs)
+		if len(stepErrors) > 0 {
+			err := errors.New("problem running steps")
+			err = errors.Join(stepErrors...)
+			return nil, err
+		}
+		createdFiles = append(createdFiles, stepCreatedFiles...)
+		templateMetadata = append(templateMetadata, g.TemplateMetadata{
+			Uri:     template.Uri,
+			Version: template.Version,
+		})
 	}
 
 	return &g.GeneratedMetadata{
-		Uri:          template.Uri,
-		Version:      template.Version,
-		Input:        templateInput,
+		Templates:    &templateMetadata,
+		Input:        input,
 		CreatedFiles: &createdFiles,
 	}, nil
 }
