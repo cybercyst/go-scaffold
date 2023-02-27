@@ -27,7 +27,7 @@ var rootCmd = &cobra.Command{
 
 		input, err := utils.ReadTemplateInput(inputFile)
 		if err != nil {
-			fmt.Fprint(os.Stderr, color.Red("[ERROR]"), " problem reading input: ", err)
+			fmt.Fprint(os.Stderr, color.Red("[ERROR]"), " problem reading input: ", err, "\n")
 			os.Exit(1)
 		}
 
@@ -36,24 +36,24 @@ var rootCmd = &cobra.Command{
 
 		template, err := scaffold.Download(uri)
 		if err != nil {
-			fmt.Fprint(os.Stderr, color.Red("[ERROR]"), " problem preparing template: ", err)
+			fmt.Fprint(os.Stderr, color.Red("[ERROR]"), " problem preparing template: ", err, "\n")
 			os.Exit(1)
 		}
 
 		metadata, err := scaffold.Generate(template, &input, outputDirectory)
 		if err != nil {
-			fmt.Fprint(os.Stderr, color.Red("[ERROR]"), " problem generating template: ", err)
+			fmt.Fprint(os.Stderr, color.Red("[ERROR]"), " problem generating template: ", err, "\n")
 			os.Exit(1)
 		}
 
 		metadataYaml, err := yaml.Marshal(metadata)
 		if err != nil {
-			fmt.Fprint(os.Stderr, color.Red("[ERROR]"), " unable to parse generated artifact metadata: ", err)
+			fmt.Fprint(os.Stderr, color.Red("[ERROR]"), " unable to parse generated artifact metadata: ", err, "\n")
 			os.Exit(1)
 		}
 		err = os.WriteFile(filepath.Join(outputDirectory, ".metadata.yaml"), metadataYaml, 0644)
 		if err != nil {
-			fmt.Fprintf(os.Stderr, color.Red("[ERROR]"), " unable to save generated artifact metadata: ", err)
+			fmt.Fprintf(os.Stderr, color.Red("[ERROR]"), " unable to save generated artifact metadata: ", err, "\n")
 			os.Exit(1)
 		}
 
