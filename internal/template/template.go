@@ -79,7 +79,7 @@ func downloadTemplate(fs afero.Fs, uri string) (*Template, error) {
 }
 
 func (t *Template) fetchDependencies(fs afero.Fs, deps *[]*Template) error {
-	remoteDependencies := []*Step{}
+	remoteDependencies := []Step{}
 	for _, step := range t.Steps {
 		templateFs := afero.NewBasePathFs(fs, t.LocalPath)
 		if isDependency(step, templateFs) {
@@ -87,7 +87,7 @@ func (t *Template) fetchDependencies(fs afero.Fs, deps *[]*Template) error {
 				return err
 			}
 
-			remoteDependencies = append(remoteDependencies, &step)
+			remoteDependencies = append(remoteDependencies, step)
 		}
 	}
 
