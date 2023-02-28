@@ -11,9 +11,8 @@ import (
 )
 
 type MetaTemplate struct {
-	Templates []*Template
-	Schema    *jsonschema.Schema
-	Input     map[string]interface{}
+	Templates []*Template        `json:"templates" yaml:"templates"`
+	Schema    *jsonschema.Schema `json:"schema" yaml:"schema"`
 }
 
 type Template struct {
