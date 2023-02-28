@@ -3,4 +3,4 @@ action: node:19-alpine3.16
 command:
   - sh
   - -c
-  - "export NG_CLI_ANALYTICS=0 && npx -y @angular/cli new --directory client --interactive false --skip-git --skip-install anuglar-app"
+  - "export NG_CLI_ANALYTICS=0 && npx -y @angular/cli new --directory client --interactive false --skip-git --skip-install angular-app"
