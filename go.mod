@@ -1,11 +1,11 @@
 module github.com/cybercyst/go-scaffold
 
-go 1.19
+go 1.20
 
 require (
 	github.com/imdario/mergo v0.3.13
 	github.com/spf13/cobra v1.6.1
-	github.com/stretchr/testify v1.8.1
+	github.com/stretchr/testify v1.8.2
 	gotest.tools/v3 v3.4.0
 	oras.land/oras-go/v2 v2.0.0
 )
