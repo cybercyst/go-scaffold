@@ -1,19 +1,13 @@
 package template
 
 import (
-	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io"
-	"os"
 	"path/filepath"
 	"strings"
 
 	"github.com/cybercyst/go-scaffold/internal/generate"
-	"github.com/docker/docker/api/types"
-	"github.com/docker/docker/api/types/container"
-	"github.com/docker/docker/client"
 	"github.com/spf13/afero"
 	"gopkg.in/yaml.v3"
 )
@@ -177,7 +171,8 @@ func (t *Template) ExecuteSteps(input *map[string]interface{}, fs afero.Fs, outp
 			}
 			createdFiles = append(createdFiles, newFiles...)
 		default:
-			err := t.executeActionStep(step, templateFs)
+			bp := outputFs.(*afero.BasePathFs)
+			err := t.executeActionStep(step, templateFs, *bp)
 			if err != nil {
 				errs = append(errs, err)
 			}
@@ -196,34 +191,4 @@ func (t *Template) executeTemplateStep(step Step, templateFs afero.Fs, outputFs 
 		targetFs = outputFs
 	}
 	return generate.GenerateTemplateFiles(sourceFs, targetFs, input)
-}
-
-func (t *Template) executeActionStep(step Step, targetFs afero.Fs) error {
-	ctx := context.Background()
-	cli, err := client.NewClientWithOpts(client.FromEnv, client.WithAPIVersionNegotiation())
-	if err != nil {
-		return err
-	}
-
-	reader, err := cli.ImagePull(ctx, step.Action, types.ImagePullOptions{})
-	if err != nil {
-		return err
-	}
-	defer reader.Close()
-	io.Copy(os.Stdout, reader)
-
-	resp, err := cli.ContainerCreate(ctx, &container.Config{
-		Image: step.Action,
-		Tty:   false,
-		Cmd:   step.Command,
-	}, nil, nil, nil, "")
-	if err != nil {
-		return err
-	}
-
-	if err := cli.ContainerStart(ctx, resp.ID, types.ContainerStartOptions{}); err != nil {
-		return err
-	}
-
-	return nil
 }
