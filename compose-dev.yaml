@@ -1,0 +1,7 @@
+services:
+  dev-app:
+    build:
+      context: ./
+      target: development
+    volumes:
+      - .:/project

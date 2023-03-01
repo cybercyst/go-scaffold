@@ -1,5 +1,8 @@
 version: 3
 
+vars:
+  VERSION: v0.0.1
+
 tasks:
   test:
     cmds:
@@ -29,3 +32,15 @@ tasks:
     cmds:
       - go run . -i testdata/input.json -o testoutput testdata/template
       - tree testoutput
+
+  docker_build:
+    cmds:
+      - docker build . -t forrestloomis786/go-scaffold:latest --target production
+      - docker build . -t forrestloomis786/go-scaffold:{{.VERSION}} --target production
+  
+  push:
+    deps:
+      - docker_build
+    cmds:
+      - docker push forrestloomis786/go-scaffold:latest
+      - docker push forrestloomis786/go-scaffold:{{.VERSION}}
