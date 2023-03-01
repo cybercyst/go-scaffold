@@ -4,10 +4,12 @@ env GOCOVERDIR=.
 exec go-scaffold test-template --input-file input.yaml --output-directory output
 ! stderr .
 
-cmp output/my-project/my-project.txt expected_file
+cmp output/my-project/my-project.txt expected/my-project.txt
+cmp output/compose.yaml expected/compose.yaml
 
 -- input.yaml --
-project_name: my-project
+project_name: My Project
+port: 4000
 -- test-template/template.yaml --
 title: My Template
 version: v0.0.1-test
@@ -15,11 +17,27 @@ type: object
 schema:
   project_name:
     type: string
+  port:
+    type: integer
 required:
   - project_name
 steps:
   - source: ./template
--- test-template/template/{{ project_name }}/{{ project_name }}.txt --
+-- test-template/template/{{ project_name | slugify }}/{{ project_name | slugify }}.txt --
 {{ project_name }}
--- expected_file --
-my-project
+-- test-template/template/compose.yaml --
+services:
+  backend:
+    image: {{ project_name | slugify }}
+    build: .
+    ports:
+      - {{ port }}:4000
+-- expected/my-project.txt --
+My Project
+-- expected/compose.yaml --
+services:
+  backend:
+    image: my-project
+    build: .
+    ports:
+      - 4000:4000
