@@ -29,6 +29,6 @@ RUN CGO_ENABLED=0 GOOS=linux go build -o go-scaffold
 
 FROM scratch AS production
 
-COPY --from=builder /app/go-scaffold .
+COPY --from=builder /app/go-scaffold /
 
 ENTRYPOINT [ "/go-scaffold" ]

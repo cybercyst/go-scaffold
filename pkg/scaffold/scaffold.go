@@ -9,12 +9,14 @@ import (
 	"github.com/spf13/afero"
 )
 
-type Template = t.MetaTemplate
-type GeneratedMetadata = g.GeneratedMetadata
+type (
+	Template          = t.MetaTemplate
+	GeneratedMetadata = g.GeneratedMetadata
+)
 
-func Download(templateUri string) (*Template, error) {
+func Download(templateURI string) (*Template, error) {
 	fs := afero.NewOsFs()
-	template, err := t.NewTemplate(fs, templateUri)
+	template, err := t.NewTemplate(fs, templateURI)
 	if err != nil {
 		return nil, err
 	}
@@ -39,13 +41,13 @@ func Generate(meta *Template, input *map[string]interface{}, outputPath string) 
 	for _, template := range meta.Templates {
 		stepCreatedFiles, stepErrors := template.ExecuteSteps(input, fs, outputFs)
 		if len(stepErrors) > 0 {
-			err := errors.New("problem running steps")
-			err = errors.Join(stepErrors...)
+			// err := errors.New("problem running steps")
+			err := errors.Join(stepErrors...)
 			return nil, err
 		}
 		createdFiles = append(createdFiles, stepCreatedFiles...)
 		templateMetadata = append(templateMetadata, g.TemplateMetadata{
-			Uri:     template.Uri,
+			URI:     template.URI,
 			Version: template.Version,
 		})
 	}

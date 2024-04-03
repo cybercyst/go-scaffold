@@ -27,7 +27,7 @@ type ProgressDetail struct {
 
 type DockerStatusMessage struct {
 	Status         string         `json:"status"`
-	Id             string         `json:"id"`
+	ID             string         `json:"id"`
 	ProgressDetail ProgressDetail `json:"progressDetail"`
 	Progress       string         `json:"progress"`
 }
@@ -53,7 +53,7 @@ func (w *DockerImageWriter) Write(p []byte) (n int, err error) {
 	return len(p), nil
 }
 
-func (t *Template) executeActionStep(step Step, targetFs afero.Fs, outputFs afero.BasePathFs) error {
+func (t *Template) executeActionStep(step Step, _ afero.Fs, outputFs afero.BasePathFs) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
 	defer cancel()
 
@@ -101,13 +101,13 @@ func (t *Template) executeActionStep(step Step, targetFs afero.Fs, outputFs afer
 		return err
 	}
 
-	if err := cli.ContainerStart(ctx, resp.ID, types.ContainerStartOptions{}); err != nil {
+	if err = cli.ContainerStart(ctx, resp.ID, types.ContainerStartOptions{}); err != nil {
 		return err
 	}
 
 	statusCh, errCh := cli.ContainerWait(ctx, resp.ID, container.WaitConditionNotRunning)
 	select {
-	case err := <-errCh:
+	case err = <-errCh:
 		if err != nil {
 			return err
 		}

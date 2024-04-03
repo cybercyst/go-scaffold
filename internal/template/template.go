@@ -16,7 +16,7 @@ type MetaTemplate struct {
 }
 
 type Template struct {
-	Uri       string          `json:"uri" yaml:"uri"`
+	URI       string          `json:"uri" yaml:"uri"`
 	LocalPath string          `json:"localPath" yaml:"localPath"`
 	Version   string          `json:"version" yaml:"version"`
 	Config    *TemplateConfig `json:"config" yaml:"config"`
@@ -38,6 +38,9 @@ func NewTemplate(fs afero.Fs, uri string) (*MetaTemplate, error) {
 	}
 
 	schema, err := schema.LoadSchema(template.Config.RawSchema)
+	if err != nil {
+		return nil, err
+	}
 
 	return &MetaTemplate{
 		Templates: deps,
@@ -63,13 +66,13 @@ func downloadTemplate(fs afero.Fs, uri string) (*Template, error) {
 
 	steps, stepErrors := mergeStepsFromConfigAndTemplateFilesystem(templateFs, config)
 	if len(stepErrors) > 0 {
-		err := errors.New("error loading steps")
+		// err := errors.New("error loading steps")
 		err = errors.Join(stepErrors...)
 		return nil, err
 	}
 
 	return &Template{
-		Uri:       uri,
+		URI:       uri,
 		LocalPath: downloadInfo.LocalPath,
 		Version:   downloadInfo.Version,
 		Config:    config,
@@ -126,8 +129,8 @@ func isDependency(step Step, templateFs afero.Fs) bool {
 
 func checkCircularDependency(templates []*Template, step Step) error {
 	for _, t := range templates {
-		if t.Uri == step.Source {
-			return errors.New(fmt.Sprintf("using template at %s would cause a circular dependency", step.Source))
+		if t.URI == step.Source {
+			return fmt.Errorf("using template at %s would cause a circular dependency", step.Source)
 		}
 	}
 

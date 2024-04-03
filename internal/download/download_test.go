@@ -7,7 +7,7 @@ import (
 	"gotest.tools/v3/assert"
 )
 
-func testGitUrl(url string, t *testing.T) {
+func testGitURL(url string, t *testing.T) {
 	got := isGitRepo(url)
 	if got != true {
 		t.Errorf("%s was not detected as a valid git repository", url)
@@ -16,13 +16,13 @@ func testGitUrl(url string, t *testing.T) {
 
 func TestDetectIsGitRepositoryShouldDetectValidRepositories(t *testing.T) {
 	// support https
-	testGitUrl("https://github.com/user/template.git", t)
+	testGitURL("https://github.com/user/template.git", t)
 
 	// support SSH
-	testGitUrl("git@github.com:user/template.git", t)
+	testGitURL("git@github.com:user/template.git", t)
 
 	// support self hosted repos
-	testGitUrl("git@myurltest.com:user/template.git", t)
+	testGitURL("git@myurltest.com:user/template.git", t)
 }
 
 func TestDetectIsOciArtifactUriShouldDetectValidUri(t *testing.T) {

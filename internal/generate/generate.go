@@ -9,7 +9,7 @@ import (
 )
 
 type TemplateMetadata struct {
-	Uri     string `json:"uri" yaml:"uri"`
+	URI     string `json:"uri" yaml:"uri"`
 	Version string `json:"version" yaml:"version"`
 }
 

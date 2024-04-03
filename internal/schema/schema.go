@@ -49,7 +49,7 @@ func LoadSchema(schemaOrig interface{}) (*jsonschema.Schema, error) {
 
 	switch schemaRaw := schemaRaw.(type) {
 	case []interface{}:
-		if err := Merge(&schema, schemaRaw); err != nil {
+		if err = Merge(&schema, schemaRaw); err != nil {
 			return nil, err
 		}
 	case map[string]interface{}:

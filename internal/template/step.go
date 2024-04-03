@@ -2,7 +2,6 @@ package template
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"path/filepath"
 	"strings"
@@ -13,7 +12,7 @@ import (
 )
 
 type Step struct {
-	Id          string                 `json:"id" yaml:"id"`
+	ID          string                 `json:"id" yaml:"id"`
 	Description string                 `json:"description" yaml:"description"`
 	Action      string                 `json:"action" yaml:"action"`
 	Target      string                 `json:"target" yaml:"target"`
@@ -28,13 +27,13 @@ func mergeStepsFromConfigAndTemplateFilesystem(templateFs afero.Fs, config *Temp
 
 	if config.Steps != nil {
 		for idx, step := range config.Steps {
-			if step.Id == "" {
-				step.Id = fmt.Sprintf("Step %d", idx)
+			if step.ID == "" {
+				step.ID = fmt.Sprintf("Step %d", idx)
 			}
 			step = *parseStep(&step)
 
 			if err := validateStep(step); err != nil {
-				allErrors = append(allErrors, errors.New(fmt.Sprintf("step %+v is not valid: %s", step, err)))
+				allErrors = append(allErrors, fmt.Errorf("step %+v is not valid: %s", step, err))
 			}
 
 			validSteps = append(validSteps, step)
@@ -49,7 +48,7 @@ func mergeStepsFromConfigAndTemplateFilesystem(templateFs afero.Fs, config *Temp
 	stepsFs := afero.NewBasePathFs(templateFs, "steps")
 	files, err := afero.ReadDir(stepsFs, ".")
 	if err != nil {
-		allErrors = append(allErrors, errors.New(fmt.Sprintf("problem reading steps directory: %s", err)))
+		allErrors = append(allErrors, fmt.Errorf("problem reading steps directory: %s", err))
 		return validSteps, allErrors
 	}
 
@@ -57,20 +56,20 @@ func mergeStepsFromConfigAndTemplateFilesystem(templateFs afero.Fs, config *Temp
 		path := file.Name()
 		step, err := loadStep(stepsFs, path)
 		if err != nil {
-			allErrors = append(allErrors, errors.New(fmt.Sprintf("step %s is not valid: %s", path, err)))
+			allErrors = append(allErrors, fmt.Errorf("step %s is not valid: %s", path, err))
 			continue
 		}
 
-		if step.Id == "" {
+		if step.ID == "" {
 			base := filepath.Base(path)
 			ext := filepath.Ext(path)
-			step.Id = strings.TrimRight(base, ext)
+			step.ID = strings.TrimRight(base, ext)
 		}
 		step = parseStep(step)
 
 		err = validateStep(*step)
 		if err != nil {
-			allErrors = append(allErrors, errors.New(fmt.Sprintf("step %s is not valid: %s", path, err)))
+			allErrors = append(allErrors, fmt.Errorf("step %s is not valid: %s", path, err))
 			continue
 		}
 
@@ -116,7 +115,7 @@ func loadStep(stepsFs afero.Fs, stepPath string) (*Step, error) {
 	case ".json":
 		fileType = JSON
 	default:
-		return nil, errors.New(fmt.Sprintf("unrecognized file extension %s", ext))
+		return nil, fmt.Errorf("unrecognized file extension %s", ext)
 	}
 
 	step, err := readStepFile(stepsFs, stepPath, fileType)
@@ -147,7 +146,7 @@ func parseStep(step *Step) *Step {
 func validateStep(step Step) error {
 	if step.Action == "template" {
 		if step.Source == "" {
-			return errors.New(fmt.Sprintf("required field source not set on step ID %s", step.Id))
+			return fmt.Errorf("required field source not set on step ID %s", step.ID)
 		}
 	}
 
