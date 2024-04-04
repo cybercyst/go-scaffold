@@ -15,6 +15,7 @@ import (
 	"github.com/docker/docker/api/types/mount"
 	"github.com/docker/docker/client"
 	"github.com/docker/docker/pkg/stdcopy"
+	"github.com/pkg/errors"
 	"github.com/spf13/afero"
 )
 
@@ -65,13 +66,15 @@ func (t *Template) executeActionStep(step Step, _ afero.Fs, outputFs afero.BaseP
 
 	fmt.Printf("%+v\n", cli)
 
-	writer := &DockerImageWriter{}
 	reader, err := cli.ImagePull(ctx, step.Action, types.ImagePullOptions{})
 	if err != nil {
 		return err
 	}
 	defer reader.Close()
-	io.Copy(writer, reader)
+	_, err = io.Copy(os.Stdout, reader)
+	if err != nil {
+		return errors.Wrap(err, "error pull output to stdout")
+	}
 
 	outputRealPath, err := outputFs.RealPath(".")
 	if err != nil {
