@@ -10,8 +10,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
+	"github.com/docker/docker/api/types/image"
 	"github.com/docker/docker/api/types/mount"
 	"github.com/docker/docker/client"
 	"github.com/docker/docker/pkg/stdcopy"
@@ -66,7 +66,7 @@ func (t *Template) executeActionStep(step Step, _ afero.Fs, outputFs afero.BaseP
 
 	fmt.Printf("%+v\n", cli)
 
-	reader, err := cli.ImagePull(ctx, step.Action, types.ImagePullOptions{})
+	reader, err := cli.ImagePull(ctx, step.Action, image.PullOptions{})
 	if err != nil {
 		return err
 	}
@@ -104,7 +104,7 @@ func (t *Template) executeActionStep(step Step, _ afero.Fs, outputFs afero.BaseP
 		return err
 	}
 
-	if err = cli.ContainerStart(ctx, resp.ID, types.ContainerStartOptions{}); err != nil {
+	if err = cli.ContainerStart(ctx, resp.ID, container.StartOptions{}); err != nil {
 		return err
 	}
 
@@ -117,7 +117,7 @@ func (t *Template) executeActionStep(step Step, _ afero.Fs, outputFs afero.BaseP
 	case <-statusCh:
 	}
 
-	out, err := cli.ContainerLogs(ctx, resp.ID, types.ContainerLogsOptions{ShowStdout: true, ShowStderr: true})
+	out, err := cli.ContainerLogs(ctx, resp.ID, container.LogsOptions{ShowStdout: true, ShowStderr: true})
 	if err != nil {
 		return err
 	}
